@@ -27,19 +27,20 @@ export default function AnalyticsPage() {
       <Header />
 
       {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 p-4 pb-32">
+      {/* bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 */}
+      <div className="flex-1 overflow-y-auto bg-gray-200 p-4 pb-32">
         
         {/* Title */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Relatórios</h1>
-          <p className="text-white text-opacity-90">Análise dos seus dados financeiros</p>
+          <h1 className="text-2xl font-semibold text-gray-800">Relatórios</h1>
+          <p className="text-sm text-gray-800 text-opacity-90">Análise dos seus dados financeiros</p>
         </div>
 
         {/* Cards de Estatísticas */}
         <div className="space-y-4 mb-6">
           
           {/* Saldo Atual */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="bg-white/50 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">Saldo Atual</p>
@@ -47,13 +48,13 @@ export default function AnalyticsPage() {
                   {financialData.balance >= 0 ? '+' : ''} {formatCurrency(financialData.balance)}
                 </p>
               </div>
-              <DollarSign size={32} className="text-blue-600" />
+              <DollarSign size={32} className="text-yellow-600" />
             </div>
           </div>
 
           {/* Receitas vs Despesas */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl shadow-lg p-4">
+            <div className="bg-white/50 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <TrendingUp size={24} className="text-green-600" />
                 <span className="text-green-600 font-semibold">+ {formatCurrency(financialData.totalIncome)}</span>
@@ -62,7 +63,7 @@ export default function AnalyticsPage() {
               <p className="text-gray-800 font-medium">{incomeCount} transações</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-4">
+            <div className="bg-white/50 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <TrendingDown size={24} className="text-red-600" />
                 <span className="text-red-600 font-semibold">- {formatCurrency(financialData.totalExpenses)}</span>
@@ -74,7 +75,7 @@ export default function AnalyticsPage() {
 
           {/* Médias */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl shadow-lg p-4">
+            <div className="bg-white/50 rounded-2xl p-4">
               <div className="text-center">
                 <p className="text-gray-600 text-sm mb-1">Média Receitas</p>
                 <p className="text-lg font-bold text-green-600">
@@ -83,7 +84,7 @@ export default function AnalyticsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-4">
+            <div className="bg-white/50 rounded-2xl p-4">
               <div className="text-center">
                 <p className="text-gray-600 text-sm mb-1">Média Despesas</p>
                 <p className="text-lg font-bold text-red-600">
@@ -94,9 +95,9 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Resumo Geral */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="bg-white/50 rounded-2xl p-6">
             <div className="flex items-center mb-4">
-              <Calendar size={24} className="text-blue-600 mr-3" />
+              <Calendar size={24} className="text-yellow-600 mr-3" />
               <h3 className="text-lg font-semibold text-gray-800">Resumo Geral</h3>
             </div>
             

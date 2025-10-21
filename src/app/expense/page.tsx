@@ -33,7 +33,7 @@ export default function ExpensePage() {
         
         {/* Title */}
         <div className="text-center my-6">
-          <h1 className="text-2xl font-bold text-gray-800">Histórico de Despesas</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">Histórico de Despesas</h1>
         </div>
 
         {/* Transactions List */}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Transaction, FinancialData, AuthUser } from '@/types';
+import { Transaction, FinancialData, User } from '@/data/mockData';
 import { 
   MOCK_USER, 
   MOCK_FINANCIAL_DATA, 
@@ -9,7 +9,7 @@ import {
 } from '@/data/mockData';
 
 interface AppContextType {
-  user: AuthUser | null;
+  user: User | null;
   financialData: FinancialData;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   removeTransaction: (id: string) => void;
@@ -21,7 +21,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(MOCK_USER);
+  const [user, setUser] = useState<User | null>(MOCK_USER);
   const [financialData, setFinancialData] = useState<FinancialData>(MOCK_FINANCIAL_DATA);
 
   // Carregar dados do localStorage apenas uma vez
@@ -31,11 +31,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
-        setUser(userData);
+        // Verificar se o usuário tem nome válido, senão usar MOCK_USER
+        if (userData.name && userData.name !== 'admin') {
+          setUser(userData);
+        } else {
+          setUser(MOCK_USER);
+        }
       } catch (error) {
         console.error('Erro ao carregar usuário:', error);
         localStorage.removeItem('e-tesouro-user');
+        setUser(MOCK_USER);
       }
+    } else {
+      // Se não há usuário salvo, usar MOCK_USER
+      setUser(MOCK_USER);
     }
   }, []);
 
@@ -93,10 +102,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     // Simulação de login - em produção, isso seria uma chamada para API
     if (email && password) {
-      const newUser: AuthUser = {
+      const newUser: User = {
         id: '1',
         name: email.split('@')[0],
         email,
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
         isAuthenticated: true
       };
       setUser(newUser);
@@ -113,10 +123,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     // Simulação de registro - em produção, isso seria uma chamada para API
     if (name && email && password) {
-      const newUser: AuthUser = {
+      const newUser: User = {
         id: '1',
         name,
         email,
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
         isAuthenticated: true
       };
       setUser(newUser);

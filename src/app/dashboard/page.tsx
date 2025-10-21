@@ -103,7 +103,7 @@ export default function DashboardPage() {
           {/* Income Column */}
           <div className="flex-1 text-center max-w-xs">
             <div 
-              className="text-black text-lg mb-6 cursor-pointer hover:text-green-600 transition-colors"
+              className="text-black text-xl mb-6 cursor-pointer hover:text-green-600 transition-colors"
               onClick={handleIncomeClick}
             >
               + {formatCurrency(financialData.totalIncome)}
@@ -122,7 +122,7 @@ export default function DashboardPage() {
           {/* Expense Column */}
           <div className="flex-1 text-center max-w-xs">
             <div 
-              className="text-black text-lg mb-6 cursor-pointer hover:text-red-600 transition-colors"
+              className="text-black text-xl mb-6 cursor-pointer hover:text-red-600 transition-colors"
               onClick={handleExpenseClick}
             >
               - {formatCurrency(financialData.totalExpenses)}
@@ -149,10 +149,8 @@ export default function DashboardPage() {
       {/* Total Fixo na parte inferior */}
       <div className="fixed bottom-32 left-0 right-0 z-10">
         <div className="backdrop-blur-md mx-4 rounded-t-2xl p-4">
-          <div className="text-center">
-            <div className={`text-2xl font-bold text-black`}>
-              {financialData.balance >= 0 ? '+' : ''} {formatCurrency(financialData.balance)}
-            </div>
+          <div className={`text-2xl font-bold text-black text-center`}>
+            {financialData.balance >= 0 ? '+' : ''} {formatCurrency(financialData.balance)}
           </div>
         </div>
       </div>

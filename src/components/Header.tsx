@@ -6,7 +6,7 @@ export default function Header() {
 const { user } = useApp();
 
   return (
-    <div className="bg-white shadow-sm flex-shrink-0 sticky top-0 z-10">
+    <div className="bg-white flex-shrink-0 sticky top-0 z-10">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center">
           <Image

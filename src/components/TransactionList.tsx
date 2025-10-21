@@ -24,7 +24,7 @@ export default function TransactionList({ transactions, onTransactionClick }: Tr
         <div
           key={transaction.id}
           onClick={() => onTransactionClick(transaction)}
-          className="flex items-center justify-between p-3 bg-white/30 backdrop-blur-sm rounded-lg cursor-pointer hover:bg-white/30 transition-all duration-200"
+          className="flex items-center justify-between p-3 bg-white/40 backdrop-blur-sm rounded-lg cursor-pointer hover:bg-white/30 transition-all duration-200"
         >
           <div className="flex items-center space-x-3">
             {transaction.type === 'income' ? (

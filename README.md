@@ -41,11 +41,10 @@ O aplicativo foi projetado com foco mobile, incluindo:
 
 ## 🎨 Design
 
-- **Cores principais**: Dourado (#FCD34D), Verde (#10B981), Vermelho (#EF4444), Azul (#3B82F6)
+- **Cor principal**: Dourado (#FCD34D)
 - **Tipografia**: Fonte Inter para melhor legibilidade e elegância
 - **Layout**: Mobile-first com responsividade
 - **Ícones**: Lucide React para consistência visual
-- **Imagens**: Avatares reais do Unsplash para autenticidade
 
 ## 🚀 Como Executar
 
@@ -89,15 +88,12 @@ src/
 │   ├── layout.tsx         # Layout principal
 │   └── page.tsx           # Página inicial
 ├── components/            # Componentes React
-│   ├── AuthPage.tsx       # Página de autenticação
-│   ├── LoginForm.tsx      # Formulário de login
-│   ├── RegisterForm.tsx   # Formulário de cadastro
-│   ├── TransactionModal.tsx # Modal para transações
-│   ├── TransactionList.tsx # Lista de transações
-│   ├── TransactionDetailsModal.tsx # Modal de detalhes
-│   ├── Header.tsx         # Cabeçalho
 │   ├── BottomTabs.tsx     # Navegação inferior
-│   └── Participants.tsx  # Componente de participantes
+│   ├── Header.tsx         # Cabeçalho
+│   ├── Participants.tsx  # Componente de participantes
+│   ├── TransactionDetailsModal.tsx # Modal de detalhes
+│   ├── TransactionList.tsx # Lista de transações
+│   └── TransactionModal.tsx # Modal para transações
 ├── context/               # Context API
 │   └── AppContext.tsx     # Estado global
 ├── data/                  # Dados mockados

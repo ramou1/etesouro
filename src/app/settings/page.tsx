@@ -30,7 +30,7 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('groups');
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
             {/* Header */}
             <Header />
             
@@ -40,12 +40,12 @@ export default function SettingsPage() {
                     <h1 className="text-2xl font-bold text-gray-800 mb-6">Configurações</h1>
                     
                     {/* Tabs Navigation */}
-                    <div className="grid grid-cols-2 gap-1 mb-6 bg-gray-200 rounded-lg p-1">
+                    <div className="grid grid-cols-2 gap-1 mb-8 bg-gray-100 rounded-lg p-1">
                         <button
                             onClick={() => setActiveTab('groups')}
                             className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                                 activeTab === 'groups' 
-                                    ? 'bg-white text-blue-600 shadow-sm' 
+                                    ? 'bg-yellow-600 text-white' 
                                     : 'text-gray-600 hover:text-gray-800'
                             }`}
                         >
@@ -56,7 +56,7 @@ export default function SettingsPage() {
                             onClick={() => setActiveTab('income')}
                             className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                                 activeTab === 'income' 
-                                    ? 'bg-white text-green-600 shadow-sm' 
+                                    ? 'bg-yellow-600 text-white' 
                                     : 'text-gray-600 hover:text-gray-800'
                             }`}
                         >
@@ -67,7 +67,7 @@ export default function SettingsPage() {
                             onClick={() => setActiveTab('expense')}
                             className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                                 activeTab === 'expense' 
-                                    ? 'bg-white text-red-600 shadow-sm' 
+                                    ? 'bg-yellow-600 text-white' 
                                     : 'text-gray-600 hover:text-gray-800'
                             }`}
                         >
@@ -78,7 +78,7 @@ export default function SettingsPage() {
                             onClick={() => setActiveTab('limits')}
                             className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                                 activeTab === 'limits' 
-                                    ? 'bg-white text-purple-600 shadow-sm' 
+                                    ? 'bg-yellow-600 text-white' 
                                     : 'text-gray-600 hover:text-gray-800'
                             }`}
                         >
@@ -108,14 +108,14 @@ function GroupsSection() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Grupos</h2>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
+                <button className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
                     <Plus size={16} />
                     Novo Grupo
                 </button>
             </div>
 
             {MOCK_GROUPS.map(group => (
-                <div key={group.id} className="bg-white rounded-2xl shadow-lg p-4">
+                <div key={group.id} className="bg-white rounded-2xl p-4">
                     <div className="flex justify-between items-start mb-3">
                         <div>
                             <h3 className="font-semibold text-gray-800">{group.name}</h3>
@@ -123,10 +123,10 @@ function GroupsSection() {
                         </div>
                         <div className="flex gap-2">
                             <button className="text-gray-400 hover:text-gray-600">
-                                <Edit size={16} />
+                                <Edit size={20} />
                             </button>
                             <button className="text-gray-400 hover:text-red-600">
-                                <Trash2 size={16} />
+                                <Trash2 size={20} />
                             </button>
                         </div>
                     </div>
@@ -161,7 +161,7 @@ function IncomeCategoriesSection() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Categorias de Entrada</h2>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
+                <button className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
                     <Plus size={16} />
                     Nova Categoria
                 </button>
@@ -169,17 +169,17 @@ function IncomeCategoriesSection() {
 
             <div className="grid grid-cols-2 gap-3">
                 {MOCK_INCOME_CATEGORIES.map(category => (
-                    <div key={category.id} className="bg-white rounded-2xl shadow-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
+                    <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
+                        <div className="flex justify-between items-start">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color}`}>
                                 {category.name}
                             </span>
                             <div className="flex gap-1">
                                 <button className="text-gray-400 hover:text-gray-600">
-                                    <Edit size={14} />
+                                    <Edit size={16} />
                                 </button>
                                 <button className="text-gray-400 hover:text-red-600">
-                                    <Trash2 size={14} />
+                                    <Trash2 size={16} />
                                 </button>
                             </div>
                         </div>
@@ -196,7 +196,7 @@ function ExpenseCategoriesSection() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Categorias de Saída</h2>
-                <button className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors">
+                <button className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors">
                     <Plus size={16} />
                     Nova Categoria
                 </button>
@@ -204,17 +204,17 @@ function ExpenseCategoriesSection() {
 
             <div className="grid grid-cols-2 gap-3">
                 {MOCK_EXPENSE_CATEGORIES.map(category => (
-                    <div key={category.id} className="bg-white rounded-2xl shadow-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
+                    <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
+                        <div className="flex justify-between items-start">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color}`}>
                                 {category.name}
                             </span>
                             <div className="flex gap-1">
                                 <button className="text-gray-400 hover:text-gray-600">
-                                    <Edit size={14} />
+                                    <Edit size={16} />
                                 </button>
                                 <button className="text-gray-400 hover:text-red-600">
-                                    <Trash2 size={14} />
+                                    <Trash2 size={16} />
                                 </button>
                             </div>
                         </div>
@@ -231,7 +231,7 @@ function PaymentMethodsSection() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Formas de Pagamento</h2>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
+                <button className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
                     <Plus size={16} />
                     Nova Forma
                 </button>
@@ -267,7 +267,7 @@ function BudgetLimitsSection() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Limites de Orçamento</h2>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors">
+                <button className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors">
                     <SettingsIcon size={16} />
                     Configurar
                 </button>
@@ -275,7 +275,7 @@ function BudgetLimitsSection() {
 
             <div className="space-y-3">
                 {MOCK_BUDGET_LIMITS.map(limit => (
-                    <div key={limit.id} className="bg-white rounded-2xl shadow-lg p-4">
+                    <div key={limit.id} className="bg-white rounded-2xl p-4">
                         <div className="flex justify-between items-start mb-3">
                             <div>
                                 <h3 className="font-semibold text-gray-800">{limit.name}</h3>
