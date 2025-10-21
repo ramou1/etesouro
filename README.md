@@ -5,18 +5,19 @@ Um aplicativo web para controle de finanças pessoais focado em evitar endividam
 ## 🚀 Funcionalidades
 
 - **Autenticação**: Sistema de login e cadastro
-- **Controle de Receitas**: Adicione entradas de dinheiro com descrição
-- **Controle de Despesas**: Registre saídas de dinheiro
+- **Dashboard Principal**: Visão geral com valores clicáveis para navegação
+- **Controle de Receitas**: Adicione entradas de dinheiro com categorias
+- **Controle de Despesas**: Registre saídas de dinheiro com categorias
+- **Categorização**: Sistema completo de categorias para receitas e despesas
+- **Grupos**: Gerenciamento de grupos familiares e de viagem
+- **Configurações**: Página completa com todas as configurações
+- **Relatórios**: Análise financeira com estatísticas detalhadas
 - **Saldo Automático**: Cálculo automático do saldo (receitas - despesas)
 - **Interface Mobile**: Design responsivo otimizado para celulares
-- **Persistência Local**: Dados salvos no navegador
-- **Dados Mock**: 18 transações de exemplo para teste (R$ 8.500 receitas, R$ 7.200 despesas)
-- **Logo Personalizada**: Identidade visual própria
-- **Avatares Reais**: Imagens de pessoas reais do Unsplash
-- **Fonte Elegante**: Tipografia Inter para melhor legibilidade
-- **Lista de Transações**: Visualização das transações recentes com clique para detalhes
-- **Modal de Detalhes**: Informações completas de cada transação
-- **Total Fixo**: Saldo sempre visível na parte inferior com efeito blur moderno
+- **Dados Centralizados**: Sistema de dados mockados para desenvolvimento
+- **Navegação Intuitiva**: Bottom tabs com navegação fluida
+- **Modal de Transações**: Adição de transações com seleção de categorias
+- **Histórico Detalhado**: Visualização completa com categorias por transação
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -30,21 +31,17 @@ Um aplicativo web para controle de finanças pessoais focado em evitar endividam
 
 O aplicativo foi projetado com foco mobile, incluindo:
 
-- Tela de login/cadastro com design moderno e logo personalizada
-- Interface principal ocupando toda a altura da tela
-- Duas colunas centralizadas (receitas/despesas) com valores em tamanho adequado
-- Linha divisória alta para melhor separação visual
-- Lista de transações recentes com design glassmorphism
-- Saldo fixo na parte inferior com efeito blur moderno
-- Seção de avatares com pessoas reais do Unsplash
-- Botões + e - integrados nas colunas com tamanho otimizado
-- Navegação inferior apenas com ícones (design minimalista)
-- Modal de detalhes com informações completas das transações
-- Cores douradas seguindo o tema "tesouro"
+- Dashboard com valores clicáveis para navegação rápida
+- Páginas específicas para receitas e despesas
+- Sistema de categorias com cores diferenciadas
+- Configurações organizadas em abas
+- Relatórios com análise visual
+- Navegação inferior com ícones intuitivos
+- Design responsivo e moderno
 
 ## 🎨 Design
 
-- **Cores principais**: Dourado (#FCD34D) e Verde (#10B981)
+- **Cores principais**: Dourado (#FCD34D), Verde (#10B981), Vermelho (#EF4444), Azul (#3B82F6)
 - **Tipografia**: Fonte Inter para melhor legibilidade e elegância
 - **Layout**: Mobile-first com responsividade
 - **Ícones**: Lucide React para consistência visual
@@ -70,50 +67,52 @@ O aplicativo foi projetado com foco mobile, incluindo:
 ## 📋 Como Usar
 
 1. **Primeiro acesso**: Crie uma conta ou faça login
-2. **Adicionar receita**: Clique no botão "+" e preencha o valor
-3. **Adicionar despesa**: Clique no botão "-" e preencha o valor
-4. **Visualizar saldo**: O saldo aparece automaticamente no centro
-5. **Filtros**: Os avatares na parte inferior são para futuras funcionalidades
+2. **Dashboard**: Visualize resumo financeiro e navegue pelos valores
+3. **Adicionar transação**: Use os botões + e - ou navegue pelas páginas específicas
+4. **Categorizar**: Selecione categorias ao adicionar transações
+5. **Configurar**: Acesse configurações para gerenciar grupos e categorias
+6. **Relatórios**: Visualize análises detalhadas na página de relatórios
 
 ## 🔧 Estrutura do Projeto
 
 ```
 src/
-├── app/                 # Páginas Next.js
-├── components/          # Componentes React
-│   ├── AuthPage.tsx     # Página de autenticação
-│   ├── LoginForm.tsx    # Formulário de login
-│   ├── RegisterForm.tsx # Formulário de cadastro
-│   ├── MainApp.tsx      # Aplicação principal
-│   └── TransactionModal.tsx # Modal para transações
-├── context/             # Context API
-│   └── AppContext.tsx   # Estado global
-├── lib/                 # Utilitários
-│   └── utils.ts         # Funções auxiliares
-└── types/               # Definições TypeScript
-    └── index.ts         # Interfaces e tipos
+├── app/                    # Páginas Next.js
+│   ├── (auth)/            # Páginas de autenticação
+│   │   ├── login/         # Página de login
+│   │   └── register/      # Página de cadastro
+│   ├── dashboard/         # Dashboard principal
+│   ├── income/            # Página de receitas
+│   ├── expense/           # Página de despesas
+│   ├── settings/          # Página de configurações
+│   ├── analytics/         # Página de relatórios
+│   ├── layout.tsx         # Layout principal
+│   └── page.tsx           # Página inicial
+├── components/            # Componentes React
+│   ├── AuthPage.tsx       # Página de autenticação
+│   ├── LoginForm.tsx      # Formulário de login
+│   ├── RegisterForm.tsx   # Formulário de cadastro
+│   ├── TransactionModal.tsx # Modal para transações
+│   ├── TransactionList.tsx # Lista de transações
+│   ├── TransactionDetailsModal.tsx # Modal de detalhes
+│   ├── Header.tsx         # Cabeçalho
+│   ├── BottomTabs.tsx     # Navegação inferior
+│   └── Participants.tsx  # Componente de participantes
+├── context/               # Context API
+│   └── AppContext.tsx     # Estado global
+├── data/                  # Dados mockados
+│   └── mockData.ts        # Dados centralizados
+├── lib/                   # Utilitários
+│   └── utils.ts           # Funções auxiliares
+└── types/                 # Definições TypeScript
+    └── index.ts           # Interfaces e tipos
 ```
-
-## 💾 Armazenamento
-
-Os dados são salvos localmente no navegador usando `localStorage`:
-- Informações do usuário
-- Transações financeiras
-- Cálculos de saldo
 
 ## 🔮 Próximas Funcionalidades
 
-- [ ] Relatórios e gráficos
-- [ ] Categorias de transações
+- [ ] Relatórios e gráficos avançados
 - [ ] Filtros por período
 - [ ] Exportação de dados
 - [ ] Notificações de gastos
 - [ ] Metas financeiras
-
-## 📄 Licença
-
-Este projeto é de uso educacional e pessoal.
-
----
-
-**Desenvolvido com ❤️ para controle financeiro pessoal**
+- [ ] Relatórios por categoria
