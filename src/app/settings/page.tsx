@@ -37,7 +37,9 @@ export default function SettingsPage() {
             {/* Main Content */}
             <div className="flex-1 overflow-y-auto p-4 pb-32">
                 <div className="max-w-md mx-auto">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-6">Configurações</h1>
+                    <div className="text-center my-6">
+                        <h1 className="text-2xl font-semibold text-gray-800">Configurações</h1>
+                    </div>
                     
                     {/* Tabs Navigation */}
                     <div className="grid grid-cols-2 gap-1 mb-8 bg-gray-100 rounded-lg p-1">

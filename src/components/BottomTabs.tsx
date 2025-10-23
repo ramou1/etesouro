@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Settings, PlusCircle, MinusCircle, TrendingUp } from "lucide-react";
+import { Home, Settings, PlusCircle, MinusCircle, ChartNoAxesCombined } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function BottomTabs() {
@@ -34,7 +34,7 @@ export default function BottomTabs() {
         
         <button className={`flex items-center justify-center py-2 ${isActive('/analytics') ? 'text-yellow-600' : 'text-gray-400'}`}
           onClick={() => router.push('/analytics')}>
-          <TrendingUp size={32} />
+          <ChartNoAxesCombined size={32} />
         </button>
       </div>
     </div>

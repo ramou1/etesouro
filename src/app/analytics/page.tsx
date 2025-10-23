@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
       <div className="flex-1 overflow-y-auto bg-gray-200 p-4 pb-32">
         
         {/* Title */}
-        <div className="text-center mb-6">
+        <div className="text-center my-6">
           <h1 className="text-2xl font-semibold text-gray-800">Relatórios</h1>
           <p className="text-sm text-gray-800 text-opacity-90">Análise dos seus dados financeiros</p>
         </div>
