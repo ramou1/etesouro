@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import BottomTabs from "@/components/BottomTabs";
 import Header from "@/components/Header";
+import NewGroupModal from "@/components/NewGroupModal";
 import { useApp } from "@/context/AppContext";
 import { 
   MOCK_GROUPS, 
@@ -16,18 +17,15 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Crown, 
-  DollarSign,
-  CreditCard,
-  Shield,
+  Crown,
   Settings as SettingsIcon,
-  Tag,
   Minus
 } from 'lucide-react';
 
 export default function SettingsPage() {
     const { user, logout } = useApp();
     const [activeTab, setActiveTab] = useState('groups');
+    const [showNewGroupModal, setShowNewGroupModal] = useState(false);
 
     return (
         <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
@@ -90,27 +88,34 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Tab Content */}
-                    {activeTab === 'groups' && <GroupsSection />}
+                    {activeTab === 'groups' && <GroupsSection onNewGroup={() => setShowNewGroupModal(true)} />}
                     {activeTab === 'income' && <IncomeCategoriesSection />}
                     {activeTab === 'expense' && <ExpenseCategoriesSection />}
-                    {activeTab === 'payment' && <PaymentMethodsSection />}
                     {activeTab === 'limits' && <BudgetLimitsSection />}
                 </div>
             </div>
             
             {/* Bottom Navigation */}
             <BottomTabs />
+
+            {/* New Group Modal */}
+            {showNewGroupModal && (
+                <NewGroupModal onClose={() => setShowNewGroupModal(false)} />
+            )}
         </div>
     )
 }
 
 // Componente para seção de Grupos
-function GroupsSection() {
+function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Grupos</h2>
-                <button className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
+                <button 
+                    onClick={onNewGroup}
+                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                >
                     <Plus size={16} />
                     Novo Grupo
                 </button>
@@ -121,7 +126,10 @@ function GroupsSection() {
                     <div className="flex justify-between items-start mb-3">
                         <div>
                             <h3 className="font-semibold text-gray-800">{group.name}</h3>
-                            <p className="text-sm text-gray-600">{group.members.length} integrantes</p>
+                            {group.description && (
+                                <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+                            )}
+                            <p className="text-sm text-gray-600 mt-1">{group.members.length} integrantes</p>
                         </div>
                         <div className="flex gap-2">
                             <button className="text-gray-400 hover:text-gray-600">
@@ -137,11 +145,19 @@ function GroupsSection() {
                         {group.members.map(member => (
                             <div key={member.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                                 <div className="flex items-center gap-3">
-                                    <img 
-                                        src={member.avatar} 
-                                        alt={member.name}
-                                        className="w-8 h-8 rounded-full object-cover"
-                                    />
+                                    <div className="relative">
+                                        <img 
+                                            src={member.avatar} 
+                                            alt={member.name}
+                                            className="w-8 h-8 rounded-full object-cover"
+                                        />
+                                        {/* Coroa dourada para o dono da conta (admin do primeiro membro) */}
+                                        {member.isAdmin && member.id === '1' && (
+                                            <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5">
+                                                <Crown size={12} className="text-yellow-500 fill-yellow-500" />
+                                            </div>
+                                        )}
+                                    </div>
                                     <span className="text-sm text-gray-700">{member.name}</span>
                                 </div>
                                 <div className="flex gap-2">
@@ -227,42 +243,6 @@ function ExpenseCategoriesSection() {
     );
 }
 
-// Componente para seção de Formas de Pagamento
-function PaymentMethodsSection() {
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Formas de Pagamento</h2>
-                <button className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
-                    <Plus size={16} />
-                    Nova Forma
-                </button>
-            </div>
-
-            <div className="space-y-3">
-                {MOCK_PAYMENT_METHODS.map(method => (
-                    <div key={method.id} className="bg-white rounded-2xl shadow-lg p-4">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl">{method.icon}</span>
-                                <span className="font-medium text-gray-800">{method.name}</span>
-                            </div>
-                            <div className="flex gap-2">
-                                <button className="text-gray-400 hover:text-gray-600">
-                                    <Edit size={16} />
-                                </button>
-                                <button className="text-gray-400 hover:text-red-600">
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
 // Componente para seção de Limites de Orçamento
 function BudgetLimitsSection() {
     return (
@@ -303,7 +283,7 @@ function BudgetLimitsSection() {
             <div className="bg-white rounded-2xl shadow-lg p-4">
                 <h3 className="font-semibold text-gray-800 mb-2">Resumo dos Limites</h3>
                 <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-800">100%</p>
+                    <p className="text-2xl font-bold text-gray-800">110%</p>
                     <p className="text-sm text-gray-600">Total do orçamento distribuído</p>
                 </div>
             </div>

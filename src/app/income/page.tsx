@@ -19,6 +19,7 @@ export default function IncomePage() {
   );
 
   const handleTransactionClick = (transaction: any) => {
+    console.log(transaction)
     setSelectedTransaction(transaction);
     setShowTransactionDetails(true);
   };

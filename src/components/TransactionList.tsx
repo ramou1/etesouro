@@ -28,11 +28,11 @@ export default function TransactionList({ transactions, onTransactionClick }: Tr
         >
           <div className="flex items-center space-x-3">
             {transaction.type === 'income' ? (
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
                 <ArrowUp className="text-green-600" size={16} />
               </div>
             ) : (
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-red-200 rounded-full flex items-center justify-center">
                 <ArrowDown className="text-red-600" size={16} />
               </div>
             )}
@@ -46,7 +46,7 @@ export default function TransactionList({ transactions, onTransactionClick }: Tr
           </div>
           <div className="text-right">
             <p className={`font-semibold text-sm ${
-              transaction.type === 'income' ? 'text-green-400' : 'text-red-400'
+              transaction.type === 'income' ? 'text-green-500' : 'text-red-500'
             }`}>
               {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
             </p>

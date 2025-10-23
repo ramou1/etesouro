@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('D');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('M');
 
   // Buscar o grupo ativo dos dados mockados
   const activeGroup = MOCK_GROUPS.find(group => group.isActive) || MOCK_GROUPS[0];
@@ -46,11 +46,18 @@ export default function DashboardPage() {
   // Função para formatar a data atual
   const getCurrentDateRange = () => {
     const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const year = String(now.getFullYear()).slice(-2);
+    // const day = String(now.getDate()).padStart(2, '0');
+    // const month = String(now.getMonth() + 1).padStart(2, '0');
+    // const year = String(now.getFullYear()).slice(-2);
     
-    return `${day}/${month}/${year}`;
+    // return `${day}/${month}/${year}`;
+    
+    // Retorna o nome do mês atual
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return monthNames[now.getMonth()];
   };
 
   const periods = [
@@ -86,7 +93,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Data Atual */}
+        {/* Nome do Mês Atual */}
         <div className="flex justify-center items-center mb-6">
           <h3 className="text-lg font-bold text-black">{getCurrentDateRange()}</h3>
         </div>
