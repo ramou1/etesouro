@@ -7,19 +7,23 @@ import Header from '@/components/Header';
 import BottomTabs from '@/components/BottomTabs';
 import TransactionList from '@/components/TransactionList';
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
+import { Transaction } from '@/types';
 
 export default function IncomePage() {
-  const { financialData } = useApp();
+  const { getFilteredFinancialData } = useApp();
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
-  // Filtrar apenas transações de entrada (income)
-  const incomeTransactions = financialData.transactions.filter(
-    (transaction: any) => transaction.type === 'income'
+  // Usar os dados filtrados
+  const filteredFinancialData = getFilteredFinancialData();
+
+  // Filtrar apenas transações de entrada (income) dos dados filtrados
+  const incomeTransactions = filteredFinancialData.transactions.filter(
+    (transaction: Transaction) => transaction.type === 'income'
   );
 
-  const handleTransactionClick = (transaction: any) => {
-    console.log(transaction)
+  const handleTransactionClick = (transaction: Transaction) => {
+    console.log(transaction);
     setSelectedTransaction(transaction);
     setShowTransactionDetails(true);
   };
@@ -59,7 +63,7 @@ export default function IncomePage() {
           <div className="text-center">
             <p className="text-gray-600 text-sm">Total de Receitas</p>
             <div className="text-2xl font-bold text-green-600 mb-2">
-              + {formatCurrency(financialData.totalIncome)}
+              + {formatCurrency(filteredFinancialData.totalIncome)}
             </div>
           </div>
         </div>
