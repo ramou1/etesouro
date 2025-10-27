@@ -120,7 +120,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Divider - Linha mais alta */}
-          <div className="w-px h-full bg-black mx-8"></div>
+          <div className="w-px h-full bg-black mx-4"></div>
 
           {/* Expense Column */}
           <div className="flex-1 text-center max-w-xs">
