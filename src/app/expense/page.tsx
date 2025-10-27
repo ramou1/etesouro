@@ -7,18 +7,22 @@ import Header from '@/components/Header';
 import BottomTabs from '@/components/BottomTabs';
 import TransactionList from '@/components/TransactionList';
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
+import { Transaction } from '@/types';
 
 export default function ExpensePage() {
-  const { financialData } = useApp();
+  const { getFilteredFinancialData } = useApp();
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
-  // Filtrar apenas transações de saída (expense)
-  const expenseTransactions = financialData.transactions.filter(
-    (transaction: any) => transaction.type === 'expense'
+  // Usar os dados filtrados
+  const filteredFinancialData = getFilteredFinancialData();
+
+  // Filtrar apenas transações de saída (expense) dos dados filtrados
+  const expenseTransactions = filteredFinancialData.transactions.filter(
+    (transaction: Transaction) => transaction.type === 'expense'
   );
 
-  const handleTransactionClick = (transaction: any) => {
+  const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setShowTransactionDetails(true);
   };
@@ -58,7 +62,7 @@ export default function ExpensePage() {
           <div className="text-center">
             <p className="text-gray-600 text-sm">Total de Despesas</p>
             <div className="text-2xl font-bold text-red-600 mb-2">
-              - {formatCurrency(financialData.totalExpenses)}
+              - {formatCurrency(filteredFinancialData.totalExpenses)}
             </div>
           </div>
         </div>

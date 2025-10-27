@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { X } from 'lucide-react';
-import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
+import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_PAYMENT_METHODS } from '@/data/mockData';
 
 interface TransactionModalProps {
   type: 'income' | 'expense';
@@ -14,9 +14,10 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { addTransaction } = useApp();
+  const { addTransaction, user } = useApp();
 
   // Obter categorias baseadas no tipo de transação
   const categories = type === 'income' ? MOCK_INCOME_CATEGORIES : MOCK_EXPENSE_CATEGORIES;
@@ -38,14 +39,17 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
         description: description || selectedCategory || (type === 'income' ? 'Receita' : 'Despesa'),
         type,
         date: new Date(),
-        category: selectedCategory
+        category: selectedCategory || categories[0]?.name || 'Outros',
+        paymentMethod: selectedPaymentMethod || MOCK_PAYMENT_METHODS[0]?.name || 'Dinheiro',
+        userId: user?.id || '1' // Usa o ID do usuário logado ou um fallback
       });
       
       setAmount('');
       setDescription('');
       setSelectedCategory('');
+      setSelectedPaymentMethod('');
       onClose();
-    } catch (error) {
+    } catch {
       alert('Erro ao adicionar transação');
     } finally {
       setIsLoading(false);
@@ -113,6 +117,28 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
                   }`}
                 >
                   {category.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Método de Pagamento
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {MOCK_PAYMENT_METHODS.map(method => (
+                <button
+                  key={method.id}
+                  type="button"
+                  onClick={() => setSelectedPaymentMethod(method.name)}
+                  className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                    selectedPaymentMethod === method.name
+                      ? 'bg-yellow-100 text-yellow-700 border-yellow-500'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {method.icon} {method.name}
                 </button>
               ))}
             </div>

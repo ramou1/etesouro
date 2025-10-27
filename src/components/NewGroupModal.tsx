@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Search, Plus, Upload, Crown } from 'lucide-react';
+import { X, Search, Plus } from 'lucide-react';
+import Image from 'next/image';
 
 interface Member {
   id: string;
@@ -118,7 +119,8 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       
       alert('Grupo criado com sucesso!');
       onClose();
-    } catch (error) {
+    } catch {
+      // Removemos o 'error' não utilizado
       alert('Erro ao criar grupo');
     } finally {
       setIsLoading(false);
@@ -194,7 +196,13 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
                 {selectedMembers.map(member => (
                   <div key={member.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                      <Image 
+                        src={member.avatar} 
+                        alt={member.name} 
+                        width={40} 
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover" 
+                      />
                       <div>
                         <p className="text-sm font-medium text-gray-800">{member.name}</p>
                         <p className="text-xs text-gray-500">{member.email}</p>
@@ -248,7 +256,13 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
                       onClick={() => toggleMember(member)}
                       className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                     >
-                      <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                      <Image 
+                        src={member.avatar} 
+                        alt={member.name} 
+                        width={40} 
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover" 
+                      />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">{member.name}</p>
                         <p className="text-xs text-gray-500">{member.email}</p>

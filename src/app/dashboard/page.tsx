@@ -7,22 +7,22 @@ import { Plus, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import TransactionModal from '@/components/TransactionModal';
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
-import TransactionList from '@/components/TransactionList';
 import Header from '@/components/Header';
 import Participants from '@/components/Participants';
 import BottomTabs from '@/components/BottomTabs';
 import { MOCK_GROUPS } from '@/data/mockData';
+import { Transaction } from '@/types';
 
 export default function DashboardPage() {
-  const { financialData, user, logout, getFilteredFinancialData } = useApp();
+  const { getFilteredFinancialData } = useApp();
   const router = useRouter();
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('M');
 
-  // 🔥 IMPORTANTE: Usar os dados filtrados em vez dos dados completos
+  // Usar os dados filtrados
   const filteredFinancialData = getFilteredFinancialData();
 
   // Buscar o grupo ativo dos dados mockados
@@ -33,7 +33,7 @@ export default function DashboardPage() {
     setShowTransactionModal(true);
   };
 
-  const handleTransactionClick = (transaction: any) => {
+  const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setShowTransactionDetails(true);
   };
@@ -109,7 +109,6 @@ export default function DashboardPage() {
               className="text-black text-xl mb-6 cursor-pointer hover:text-green-600 transition-colors"
               onClick={handleIncomeClick}
             >
-              {/* 🔥 Usando dados filtrados */}
               + {formatCurrency(filteredFinancialData.totalIncome)}
             </div>
             <button
@@ -129,7 +128,6 @@ export default function DashboardPage() {
               className="text-black text-xl mb-6 cursor-pointer hover:text-red-600 transition-colors"
               onClick={handleExpenseClick}
             >
-              {/* 🔥 Usando dados filtrados */}
               - {formatCurrency(filteredFinancialData.totalExpenses)}
             </div>
             <button
@@ -140,22 +138,12 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
-
-        {/* Lista de Transações (opcional - se quiser mostrar também filtrada) */}
-        {/* <div className="mb-4">
-          <h3 className="text-white text-lg font-semibold mb-3 text-center">Transações Recentes</h3>
-          <TransactionList 
-            transactions={filteredFinancialData.transactions.slice(0, 10)} 
-            onTransactionClick={handleTransactionClick}
-          />
-        </div> */}
       </div>
 
       {/* Total Fixo na parte inferior */}
       <div className="fixed bottom-32 left-0 right-0 z-10">
         <div className="backdrop-blur-md mx-4 rounded-t-2xl p-4">
           <div className={`text-2xl font-bold text-black text-center`}>
-            {/* 🔥 Usando dados filtrados */}
             {filteredFinancialData.balance >= 0 ? '+' : ''} {formatCurrency(filteredFinancialData.balance)}
           </div>
         </div>
