@@ -57,7 +57,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Image
-              src="/images/logo02.png"
+              src="/images/logo01.png"
               alt="eTE$OURO Logo"
               width={160}
               height={50}

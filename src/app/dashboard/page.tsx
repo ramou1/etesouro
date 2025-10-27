@@ -14,13 +14,16 @@ import BottomTabs from '@/components/BottomTabs';
 import { MOCK_GROUPS } from '@/data/mockData';
 
 export default function DashboardPage() {
-  const { financialData, user, logout } = useApp();
+  const { financialData, user, logout, getFilteredFinancialData } = useApp();
   const router = useRouter();
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('M');
+
+  // 🔥 IMPORTANTE: Usar os dados filtrados em vez dos dados completos
+  const filteredFinancialData = getFilteredFinancialData();
 
   // Buscar o grupo ativo dos dados mockados
   const activeGroup = MOCK_GROUPS.find(group => group.isActive) || MOCK_GROUPS[0];
@@ -46,13 +49,6 @@ export default function DashboardPage() {
   // Função para formatar a data atual
   const getCurrentDateRange = () => {
     const now = new Date();
-    // const day = String(now.getDate()).padStart(2, '0');
-    // const month = String(now.getMonth() + 1).padStart(2, '0');
-    // const year = String(now.getFullYear()).slice(-2);
-    
-    // return `${day}/${month}/${year}`;
-    
-    // Retorna o nome do mês atual
     const monthNames = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
@@ -113,7 +109,8 @@ export default function DashboardPage() {
               className="text-black text-xl mb-6 cursor-pointer hover:text-green-600 transition-colors"
               onClick={handleIncomeClick}
             >
-              + {formatCurrency(financialData.totalIncome)}
+              {/* 🔥 Usando dados filtrados */}
+              + {formatCurrency(filteredFinancialData.totalIncome)}
             </div>
             <button
               onClick={() => handleAddTransaction('income')}
@@ -132,7 +129,8 @@ export default function DashboardPage() {
               className="text-black text-xl mb-6 cursor-pointer hover:text-red-600 transition-colors"
               onClick={handleExpenseClick}
             >
-              - {formatCurrency(financialData.totalExpenses)}
+              {/* 🔥 Usando dados filtrados */}
+              - {formatCurrency(filteredFinancialData.totalExpenses)}
             </div>
             <button
               onClick={() => handleAddTransaction('expense')}
@@ -143,11 +141,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Lista de Transações */}
+        {/* Lista de Transações (opcional - se quiser mostrar também filtrada) */}
         {/* <div className="mb-4">
           <h3 className="text-white text-lg font-semibold mb-3 text-center">Transações Recentes</h3>
           <TransactionList 
-            transactions={financialData.transactions.slice(0, 10)} 
+            transactions={filteredFinancialData.transactions.slice(0, 10)} 
             onTransactionClick={handleTransactionClick}
           />
         </div> */}
@@ -157,7 +155,8 @@ export default function DashboardPage() {
       <div className="fixed bottom-32 left-0 right-0 z-10">
         <div className="backdrop-blur-md mx-4 rounded-t-2xl p-4">
           <div className={`text-2xl font-bold text-black text-center`}>
-            {financialData.balance >= 0 ? '+' : ''} {formatCurrency(financialData.balance)}
+            {/* 🔥 Usando dados filtrados */}
+            {filteredFinancialData.balance >= 0 ? '+' : ''} {formatCurrency(filteredFinancialData.balance)}
           </div>
         </div>
       </div>

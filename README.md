@@ -80,16 +80,17 @@ src/
 │   ├── (auth)/            # Páginas de autenticação
 │   │   ├── login/         # Página de login
 │   │   └── register/      # Página de cadastro
-│   ├── dashboard/         # Dashboard principal
-│   ├── income/            # Página de receitas
-│   ├── expense/           # Página de despesas
-│   ├── settings/          # Página de configurações
 │   ├── analytics/         # Página de relatórios
+│   ├── dashboard/         # Dashboard principal
+│   ├── expense/           # Página de despesas
+│   ├── income/            # Página de receitas
+│   ├── settings/          # Página de configurações
 │   ├── layout.tsx         # Layout principal
 │   └── page.tsx           # Página inicial
 ├── components/            # Componentes React
 │   ├── BottomTabs.tsx     # Navegação inferior
 │   ├── Header.tsx         # Cabeçalho
+│   ├── NewGroupModal.tsx  # Modal de novo grupo
 │   ├── Participants.tsx  # Componente de participantes
 │   ├── TransactionDetailsModal.tsx # Modal de detalhes
 │   ├── TransactionList.tsx # Lista de transações

@@ -58,7 +58,7 @@ export interface Transaction {
   description: string;
   category: string;
   paymentMethod: string;
-  date: string;
+  date: Date;
   groupId?: string;
   userId: string;
 }
@@ -119,7 +119,7 @@ export const MOCK_GROUPS: Group[] = [
     id: '2',
     name: 'Viagem',
     description: 'Grupo para viagem de férias',
-    isActive: true,
+    isActive: false,
     members: [
       {
         id: '4',
@@ -208,6 +208,7 @@ export const MOCK_BUDGET_LIMITS: BudgetLimit[] = [
 ];
 
 export const MOCK_TRANSACTIONS: Transaction[] = [
+  // Transações de João Silva (id: 1)
   {
     id: '1',
     type: 'income',
@@ -258,35 +259,79 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: new Date('2024-01-22'),
     userId: '1'
   },
+  
+  // Transações de Maria Santos (id: 2)
   {
     id: '6',
     type: 'income',
-    amount: 500,
-    description: 'Dividendos',
-    category: 'Investimentos',
+    amount: 4500,
+    description: 'Salário mensal',
+    category: 'Salário',
     paymentMethod: 'Transferência',
-    date: new Date('2024-01-25'),
-    userId: '1'
+    date: new Date('2024-01-15'),
+    userId: '2'
   },
   {
     id: '7',
+    type: 'expense',
+    amount: 600,
+    description: 'Supermercado',
+    category: 'Alimentação',
+    paymentMethod: 'Cartão de Crédito',
+    date: new Date('2024-01-17'),
+    userId: '2'
+  },
+  {
+    id: '8',
     type: 'expense',
     amount: 150,
     description: 'Cinema',
     category: 'Lazer',
     paymentMethod: 'Cartão de Crédito',
     date: new Date('2024-01-23'),
-    userId: '1'
+    userId: '2'
   },
   {
-    id: '8',
+    id: '9',
     type: 'expense',
     amount: 200,
     description: 'Farmácia',
     category: 'Saúde',
     paymentMethod: 'Dinheiro',
     date: new Date('2024-01-21'),
-    userId: '1'
+    userId: '2'
+  },
+  
+  // Transações de Pedro Silva (id: 3)
+  {
+    id: '10',
+    type: 'expense',
+    amount: 250,
+    description: 'Materiais escolares',
+    category: 'Educação',
+    paymentMethod: 'Cartão de Débito',
+    date: new Date('2024-01-10'),
+    userId: '3'
+  },
+  {
+    id: '11',
+    type: 'expense',
+    amount: 180,
+    description: 'Pizza com amigos',
+    category: 'Lazer',
+    paymentMethod: 'PIX',
+    date: new Date('2024-01-19'),
+    userId: '3'
+  },
+  {
+    id: '12',
+    type: 'expense',
+    amount: 320,
+    description: 'Tênis novo',
+    category: 'Roupas',
+    paymentMethod: 'Cartão de Crédito',
+    date: new Date('2024-01-24'),
+    userId: '3'
   }
 ];
 

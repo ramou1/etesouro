@@ -1,26 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import Image from "next/image";
 import { getFamilyMembers } from '@/data/mockData';
+import { useApp } from '@/context/AppContext';
 
 export default function Participants() {
     const participants = getFamilyMembers();
-    const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+    const { selectedParticipants, toggleParticipant } = useApp();
 
-    const toggleParticipant = (participantId: string) => {
-        setSelectedParticipants(prev => {
-            if (prev.includes(participantId)) {
-                // Remove da lista (habilita novamente)
-                return prev.filter(id => id !== participantId);
-            } else {
-                // Adiciona na lista (desabilita)
-                return [...prev, participantId];
-            }
-        });
-    };
-
-    const isSelected = (participantId: string) => {
+    const isDisabled = (participantId: string) => {
         return selectedParticipants.includes(participantId);
     };
 
@@ -32,7 +20,7 @@ export default function Participants() {
                         key={participant.id}
                         onClick={() => toggleParticipant(participant.id)}
                         className="relative w-12 h-12 border-4 border-yellow-300 rounded-full overflow-hidden transition-all hover:scale-110 focus:outline-none"
-                        title={isSelected(participant.id) ? `${participant.name} (Desabilitado)` : participant.name}
+                        title={isDisabled(participant.id) ? `${participant.name} (Desabilitado)` : participant.name}
                     >
                         <Image 
                             src={participant.avatar} 
@@ -42,8 +30,8 @@ export default function Participants() {
                             className="w-full h-full object-cover" 
                         />
                         
-                        {/* Overlay amarelo quando selecionado */}
-                        {isSelected(participant.id) && (
+                        {/* Overlay amarelo quando desabilitado */}
+                        {isDisabled(participant.id) && (
                             <div className="absolute inset-0 bg-yellow-400/70 backdrop-blur-[1px]"></div>
                         )}
                     </button>
