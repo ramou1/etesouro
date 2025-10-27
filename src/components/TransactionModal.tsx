@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
-import { X } from 'lucide-react';
-import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_PAYMENT_METHODS } from '@/data/mockData';
+import { X, Upload, FileText, Image } from 'lucide-react';
+import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
 
 interface TransactionModalProps {
   type: 'income' | 'expense';
@@ -14,8 +14,9 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { addTransaction, user } = useApp();
 
@@ -34,25 +35,60 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
     }
 
     try {
+      // Simular upload do comprovante (em uma implementação real, isso enviaria para um servidor)
+      let receiptUrl = '';
+      if (receiptFile) {
+        // Aqui você implementaria o upload real do arquivo
+        // Por enquanto, vamos simular gerando uma URL local
+        receiptUrl = URL.createObjectURL(receiptFile);
+      }
+
       addTransaction({
         amount: numericAmount,
         description: description || selectedCategory || (type === 'income' ? 'Receita' : 'Despesa'),
         type,
         date: new Date(),
         category: selectedCategory || categories[0]?.name || 'Outros',
-        paymentMethod: selectedPaymentMethod || MOCK_PAYMENT_METHODS[0]?.name || 'Dinheiro',
-        userId: user?.id || '1' // Usa o ID do usuário logado ou um fallback
+        userId: user?.id || '1',
+        receipt: receiptUrl // URL do comprovante após upload
       });
       
       setAmount('');
       setDescription('');
       setSelectedCategory('');
-      setSelectedPaymentMethod('');
+      setReceiptFile(null);
       onClose();
     } catch {
       alert('Erro ao adicionar transação');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tipo de arquivo
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        alert('Por favor, selecione um arquivo JPEG, PNG ou PDF');
+        return;
+      }
+
+      // Validar tamanho do arquivo (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('O arquivo deve ter no máximo 5MB');
+        return;
+      }
+
+      setReceiptFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setReceiptFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -67,6 +103,15 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
     }
     
     return cleaned;
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return <Image size={20} className="text-blue-500" />;
+    } else if (file.type === 'application/pdf') {
+      return <FileText size={20} className="text-red-500" />;
+    }
+    return <FileText size={20} className="text-gray-500" />;
   };
 
   return (
@@ -124,24 +169,49 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Método de Pagamento
+              Comprovante (opcional)
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {MOCK_PAYMENT_METHODS.map(method => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => setSelectedPaymentMethod(method.name)}
-                  className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
-                    selectedPaymentMethod === method.name
-                      ? 'bg-yellow-100 text-yellow-700 border-yellow-500'
-                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {method.icon} {method.name}
-                </button>
-              ))}
-            </div>
+            
+            {!receiptFile ? (
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-yellow-400 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600 mb-1">Clique para adicionar comprovante</p>
+                <p className="text-xs text-gray-500">JPEG, PNG ou PDF (máx. 5MB)</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+            ) : (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {getFileIcon(receiptFile)}
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 truncate max-w-[200px]">
+                        {receiptFile.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(receiptFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveFile}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>

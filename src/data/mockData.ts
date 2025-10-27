@@ -57,10 +57,10 @@ export interface Transaction {
   amount: number;
   description: string;
   category: string;
-  paymentMethod: string;
   date: Date;
   groupId?: string;
   userId: string;
+  receipt?: string; // URL ou caminho do comprovante
 }
 
 export interface FinancialData {
@@ -215,9 +215,9 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 5000,
     description: 'Salário mensal',
     category: 'Salário',
-    paymentMethod: 'Transferência',
     date: new Date('2024-01-15'),
-    userId: '1'
+    userId: '1',
+    receipt: '/receipts/salario-janeiro.pdf'
   },
   {
     id: '2',
@@ -225,9 +225,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 1200,
     description: 'Freelance desenvolvimento',
     category: 'Freelance',
-    paymentMethod: 'PIX',
     date: new Date('2024-01-20'),
-    userId: '1'
+    userId: '1',
   },
   {
     id: '3',
@@ -235,9 +234,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 800,
     description: 'Supermercado',
     category: 'Alimentação',
-    paymentMethod: 'Cartão de Débito',
     date: new Date('2024-01-18'),
-    userId: '1'
+    userId: '1',
   },
   {
     id: '4',
@@ -245,9 +243,9 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 1200,
     description: 'Aluguel',
     category: 'Moradia',
-    paymentMethod: 'Transferência',
     date: new Date('2024-01-05'),
-    userId: '1'
+    userId: '1',
+    receipt: '/receipts/supermercado-18-01.jpg',
   },
   {
     id: '5',
@@ -255,9 +253,9 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 300,
     description: 'Combustível',
     category: 'Transporte',
-    paymentMethod: 'Cartão de Crédito',
     date: new Date('2024-01-22'),
-    userId: '1'
+    userId: '1',
+    receipt: '/receipts/supermercado-18-01.pdf',
   },
   
   // Transações de Maria Santos (id: 2)
@@ -267,9 +265,9 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 4500,
     description: 'Salário mensal',
     category: 'Salário',
-    paymentMethod: 'Transferência',
     date: new Date('2024-01-15'),
-    userId: '2'
+    userId: '2',
+    receipt: '/receipts/aluguel-janeiro.pdf',
   },
   {
     id: '7',
@@ -277,9 +275,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 600,
     description: 'Supermercado',
     category: 'Alimentação',
-    paymentMethod: 'Cartão de Crédito',
     date: new Date('2024-01-17'),
-    userId: '2'
+    userId: '2',
   },
   {
     id: '8',
@@ -287,9 +284,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 150,
     description: 'Cinema',
     category: 'Lazer',
-    paymentMethod: 'Cartão de Crédito',
     date: new Date('2024-01-23'),
-    userId: '2'
+    userId: '2',
   },
   {
     id: '9',
@@ -297,9 +293,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 200,
     description: 'Farmácia',
     category: 'Saúde',
-    paymentMethod: 'Dinheiro',
     date: new Date('2024-01-21'),
-    userId: '2'
+    userId: '2',
   },
   
   // Transações de Pedro Silva (id: 3)
@@ -309,9 +304,9 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 250,
     description: 'Materiais escolares',
     category: 'Educação',
-    paymentMethod: 'Cartão de Débito',
     date: new Date('2024-01-10'),
-    userId: '3'
+    userId: '3',
+    receipt: '/receipts/aluguel-janeiro.pdf',
   },
   {
     id: '11',
@@ -319,9 +314,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 180,
     description: 'Pizza com amigos',
     category: 'Lazer',
-    paymentMethod: 'PIX',
     date: new Date('2024-01-19'),
-    userId: '3'
+    userId: '3',
   },
   {
     id: '12',
@@ -329,9 +323,9 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     amount: 320,
     description: 'Tênis novo',
     category: 'Roupas',
-    paymentMethod: 'Cartão de Crédito',
     date: new Date('2024-01-24'),
-    userId: '3'
+    userId: '3',
+    receipt: '/receipts/aluguel-janeiro.pdf'
   }
 ];
 
