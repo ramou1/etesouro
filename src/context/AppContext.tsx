@@ -1,11 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Transaction, FinancialData, User } from '@/data/mockData';
 import { 
   MOCK_USER, 
-  MOCK_FINANCIAL_DATA, 
-  MOCK_TRANSACTIONS 
+  MOCK_FINANCIAL_DATA
 } from '@/data/mockData';
 
 interface AppContextType {
@@ -47,6 +46,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+  };
+
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+    // Implementação mock para registro
+    return false;
+  };
+
+  const removeTransaction = (id: string) => {
+    // Implementação para remover transação
+    console.log('Remover transação:', id);
   };
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
@@ -116,8 +125,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         user, 
         financialData, 
         login, 
-        logout, 
+        logout,
+        register,
         addTransaction,
+        removeTransaction,
         selectedParticipants,
         toggleParticipant,
         getFilteredFinancialData

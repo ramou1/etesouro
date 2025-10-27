@@ -9,7 +9,6 @@ import {
   MOCK_GROUPS, 
   MOCK_INCOME_CATEGORIES, 
   MOCK_EXPENSE_CATEGORIES, 
-  MOCK_PAYMENT_METHODS, 
   MOCK_BUDGET_LIMITS 
 } from '@/data/mockData';
 import { 
@@ -21,9 +20,9 @@ import {
   Settings as SettingsIcon,
   Minus
 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function SettingsPage() {
-    const { user, logout } = useApp();
     const [activeTab, setActiveTab] = useState('groups');
     const [showNewGroupModal, setShowNewGroupModal] = useState(false);
 
@@ -146,9 +145,11 @@ function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
                             <div key={member.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <img 
+                                        <Image 
                                             src={member.avatar} 
                                             alt={member.name}
+                                            width={32}
+                                            height={32}
                                             className="w-8 h-8 rounded-full object-cover"
                                         />
                                         {/* Coroa dourada para o dono da conta (admin do primeiro membro) */}
