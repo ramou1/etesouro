@@ -34,13 +34,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = (email: string, password: string): boolean => {
-    if (email === MOCK_USER.email) {
-      setUser(MOCK_USER);
-      localStorage.setItem('user', JSON.stringify(MOCK_USER));
-      return true;
-    }
-    return false;
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // Simula uma chamada assíncrona
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (email === MOCK_USER.email) {
+          setUser(MOCK_USER);
+          localStorage.setItem('user', JSON.stringify(MOCK_USER));
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      }, 500);
+    });
   };
 
   const logout = () => {
@@ -50,12 +56,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     // Implementação mock para registro
-    return false;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Aqui você poderia implementar a lógica real de registro
+        console.log('Tentativa de registro:', { name, email });
+        resolve(false); // Sempre retorna false por enquanto
+      }, 500);
+    });
   };
 
   const removeTransaction = (id: string) => {
-    // Implementação para remover transação
-    console.log('Remover transação:', id);
+    setFinancialData(prev => {
+      const filteredTransactions = prev.transactions.filter(t => t.id !== id);
+      const totalIncome = filteredTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const totalExpenses = filteredTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return {
+        transactions: filteredTransactions,
+        totalIncome,
+        totalExpenses,
+        balance: totalIncome - totalExpenses,
+      };
+    });
   };
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
