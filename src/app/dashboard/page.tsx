@@ -11,7 +11,7 @@ import Header from '@/components/Header';
 import Participants from '@/components/Participants';
 import BottomTabs from '@/components/BottomTabs';
 import { MOCK_GROUPS } from '@/data/mockData';
-import { Transaction } from '@/types';
+import { Transaction } from '@/data/mockData';
 
 export default function DashboardPage() {
   const { getFilteredFinancialData } = useApp();

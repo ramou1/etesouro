@@ -4,10 +4,10 @@ export interface Transaction {
   amount: number;
   description: string;
   category: string;
-  paymentMethod: string;
   date: Date;
   groupId?: string;
   userId: string;
+  receipt?: string; // URL ou caminho do comprovante
 }
 
 export interface User {
@@ -56,13 +56,6 @@ export interface Category {
   color: string;
   icon?: string;
   type: 'income' | 'expense';
-}
-
-export interface PaymentMethod {
-  id: string;
-  name: string;
-  icon: string;
-  isActive: boolean;
 }
 
 export interface BudgetLimit {
