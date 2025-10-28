@@ -74,7 +74,7 @@ export interface FinancialData {
 export const MOCK_USER: User = {
   id: '1',
   name: 'João Silva',
-  email: 'admin@email.com',
+  email: 'admin@gmail.com',
   avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
   isAuthenticated: true
 };
