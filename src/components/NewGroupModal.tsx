@@ -150,7 +150,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
               id="groupName"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-700"
               placeholder="Ex: Família, Viagem, Amigos..."
               required
             />
@@ -165,7 +165,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
               id="description"
               value={groupDescription}
               onChange={(e) => setGroupDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all resize-none text-gray-700"
               placeholder="Descreva o propósito deste grupo..."
               rows={3}
             />
@@ -244,7 +244,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none text-gray-700"
                     placeholder="Buscar por nome ou email..."
                   />
                 </div>
