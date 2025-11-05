@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const filteredFinancialData = getFilteredFinancialData();
 
   // Buscar o grupo ativo dos dados mockados
-  const activeGroup = MOCK_GROUPS.find(group => group.isActive) || MOCK_GROUPS[0];
+  const activeGroup = MOCK_GROUPS.find(group => group.isTemporary) || MOCK_GROUPS[0];
 
   const handleAddTransaction = (type: 'income' | 'expense') => {
     setTransactionType(type);
@@ -97,7 +97,7 @@ export default function DashboardPage() {
         {/* Nome do Grupo Ativo */}
         <div className="flex justify-center items-center mb-4">
           <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
-            <span className="text-black font-medium text-sm">{activeGroup.name}</span>
+            <span className="text-black font-medium text-sm">{activeGroup.title}</span>
           </div>
         </div>
 
