@@ -39,15 +39,15 @@ export interface GroupMember {
   avatar: string;
   isAdmin: boolean;
   contributesIncome: boolean;
-  groupId: string;
+  groupId?: string;
 }
 
 export interface Group {
   id: string;
-  name: string;
+  title: string;
   description?: string;
   members: GroupMember[];
-  isActive: boolean;
+  isTemporary: boolean;
 }
 
 export interface Category {

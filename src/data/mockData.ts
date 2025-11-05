@@ -1,6 +1,8 @@
 // Arquivo centralizado com todos os dados mockados do usuário
 // Facilita a manutenção e estruturação do banco de dados
 
+import { Group, GroupMember } from "@/types";
+
 export interface User {
   id: string;
   name: string;
@@ -9,30 +11,12 @@ export interface User {
   isAuthenticated: boolean;
 }
 
-export interface GroupMember {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  isAdmin: boolean;
-  contributesIncome: boolean;
-  groupId: string;
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  description?: string;
-  members: GroupMember[];
-  isActive: boolean;
-}
-
 export interface Category {
   id: string;
-  name: string;
+  title: string;
   color: string;
-  icon?: string;
-  type: 'income' | 'expense';
+  type: string;
+  // type: 'income' | 'expense';
 }
 
 export interface PaymentMethod {
@@ -82,9 +66,9 @@ export const MOCK_USER: User = {
 export const MOCK_GROUPS: Group[] = [
   {
     id: '1',
-    name: 'Família',
+    title: 'Família',
     description: 'Grupo familiar principal',
-    isActive: true,
+    isTemporary: false,
     members: [
       {
         id: '1',
@@ -117,9 +101,9 @@ export const MOCK_GROUPS: Group[] = [
   },
   {
     id: '2',
-    name: 'Viagem',
+    title: 'Viagem',
     description: 'Grupo para viagem de férias',
-    isActive: false,
+    isTemporary: false,
     members: [
       {
         id: '4',
@@ -144,23 +128,23 @@ export const MOCK_GROUPS: Group[] = [
 ];
 
 export const MOCK_INCOME_CATEGORIES: Category[] = [
-  { id: '1', name: 'Salário', color: 'bg-green-100 text-green-600', type: 'income' },
-  { id: '2', name: 'Freelance', color: 'bg-blue-100 text-blue-600', type: 'income' },
-  { id: '3', name: 'Investimentos', color: 'bg-purple-100 text-purple-600', type: 'income' },
-  { id: '4', name: 'Vendas', color: 'bg-orange-100 text-orange-600', type: 'income' },
-  { id: '5', name: 'Bônus', color: 'bg-yellow-100 text-yellow-600', type: 'income' },
-  { id: '6', name: 'Outros', color: 'bg-gray-100 text-gray-600', type: 'income' }
+  { id: '1', title: 'Salário', color: 'bg-green-100 text-green-600', type: 'income' },
+  { id: '2', title: 'Freelance', color: 'bg-blue-100 text-blue-600', type: 'income' },
+  { id: '3', title: 'Investimentos', color: 'bg-purple-100 text-purple-600', type: 'income' },
+  { id: '4', title: 'Vendas', color: 'bg-orange-100 text-orange-600', type: 'income' },
+  { id: '5', title: 'Bônus', color: 'bg-yellow-100 text-yellow-600', type: 'income' },
+  { id: '6', title: 'Outros', color: 'bg-gray-100 text-gray-600', type: 'income' }
 ];
 
 export const MOCK_EXPENSE_CATEGORIES: Category[] = [
-  { id: '1', name: 'Alimentação', color: 'bg-red-100 text-red-600', type: 'expense' },
-  { id: '2', name: 'Transporte', color: 'bg-blue-100 text-blue-600', type: 'expense' },
-  { id: '3', name: 'Saúde', color: 'bg-green-100 text-green-600', type: 'expense' },
-  { id: '4', name: 'Lazer', color: 'bg-purple-100 text-purple-600', type: 'expense' },
-  { id: '5', name: 'Educação', color: 'bg-yellow-100 text-yellow-600', type: 'expense' },
-  { id: '6', name: 'Moradia', color: 'bg-gray-100 text-gray-600', type: 'expense' },
-  { id: '7', name: 'Roupas', color: 'bg-pink-100 text-pink-600', type: 'expense' },
-  { id: '8', name: 'Tecnologia', color: 'bg-indigo-100 text-indigo-600', type: 'expense' }
+  { id: '1', title: 'Alimentação', color: 'bg-red-100 text-red-600', type: 'expense' },
+  { id: '2', title: 'Transporte', color: 'bg-blue-100 text-blue-600', type: 'expense' },
+  { id: '3', title: 'Saúde', color: 'bg-green-100 text-green-600', type: 'expense' },
+  { id: '4', title: 'Lazer', color: 'bg-purple-100 text-purple-600', type: 'expense' },
+  { id: '5', title: 'Educação', color: 'bg-yellow-100 text-yellow-600', type: 'expense' },
+  { id: '6', title: 'Moradia', color: 'bg-gray-100 text-gray-600', type: 'expense' },
+  { id: '7', title: 'Roupas', color: 'bg-pink-100 text-pink-600', type: 'expense' },
+  { id: '8', title: 'Tecnologia', color: 'bg-indigo-100 text-indigo-600', type: 'expense' }
 ];
 
 export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
@@ -347,7 +331,7 @@ export const MOCK_FINANCIAL_DATA: FinancialData = {
 
 // Função para obter membros da família (para o dashboard)
 export const getFamilyMembers = () => {
-  const familyGroup = MOCK_GROUPS.find(group => group.name === 'Família');
+  const familyGroup = MOCK_GROUPS.find(group => group.title === 'Família');
   return familyGroup ? familyGroup.members : [];
 };
 

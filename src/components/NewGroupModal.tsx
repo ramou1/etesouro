@@ -3,26 +3,19 @@
 import { useState } from 'react';
 import { X, Search, Plus } from 'lucide-react';
 import Image from 'next/image';
-
-interface Member {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  isAdmin: boolean;
-  contributesIncome: boolean;
-}
+import { MOCK_GROUPS } from '@/data/mockData';
+import { GroupMember } from '@/types';
 
 interface NewGroupModalProps {
   onClose: () => void;
 }
 
 export default function NewGroupModal({ onClose }: NewGroupModalProps) {
-  const [groupName, setGroupName] = useState('');
-  const [groupDescription, setGroupDescription] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [isTemporary, setIsTemporary] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<GroupMember[]>([]);
   const [isAddingManually, setIsAddingManually] = useState(false);
   
   // Estados para adicionar membro manualmente
@@ -34,14 +27,15 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Membros mockados existentes (poderia vir do contexto)
-  const existingMembers: Member[] = [
+  const existingMembers: GroupMember[] = [
     {
       id: '2',
       name: 'Maria Santos',
       email: 'maria.santos@email.com',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
       isAdmin: false,
-      contributesIncome: true
+      contributesIncome: true,
+      groupId: '',
     },
     {
       id: '3',
@@ -49,7 +43,8 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       email: 'pedro.silva@email.com',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       isAdmin: false,
-      contributesIncome: false
+      contributesIncome: false,
+      groupId: '',
     },
     {
       id: '4',
@@ -57,7 +52,8 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       email: 'ana.costa@email.com',
       avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
       isAdmin: false,
-      contributesIncome: true
+      contributesIncome: true,
+      groupId: '',
     }
   ];
 
@@ -67,7 +63,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
      member.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const toggleMember = (member: Member) => {
+  const toggleMember = (member: GroupMember) => {
     if (selectedMembers.some(m => m.id === member.id)) {
       setSelectedMembers(selectedMembers.filter(m => m.id !== member.id));
     } else {
@@ -81,7 +77,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       return;
     }
 
-    const newMember: Member = {
+    const newMember: GroupMember = {
       id: `temp-${Date.now()}`,
       name: newMemberName,
       email: newMemberEmail,
@@ -102,26 +98,29 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!groupName) {
-      alert('Nome do grupo é obrigatório');
+    if (!title) {
+      alert('Título do grupo é obrigatório');
       setIsLoading(false);
       return;
     }
 
     try {
       // Aqui você implementaria a lógica para criar o grupo
-      console.log({
-        groupName,
-        groupDescription,
-        isTemporary,
+      const data = {
+        id: '',
+        title: title,
+        description: description,
+        isTemporary: isTemporary,
         members: selectedMembers
-      });
+      };
+
+      // console.log(data);
+      MOCK_GROUPS.push(data);
       
-      alert('Grupo criado com sucesso!');
       onClose();
     } catch {
       // Removemos o 'error' não utilizado
-      alert('Erro ao criar grupo');
+      // alert('Erro ao criar grupo');
     } finally {
       setIsLoading(false);
     }
@@ -140,16 +139,16 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Nome do Grupo */}
+          {/* Título do Grupo */}
           <div>
-            <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 mb-2">
-              Nome do Grupo *
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+              Título do Grupo *
             </label>
             <input
               type="text"
-              id="groupName"
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-700"
               placeholder="Ex: Família, Viagem, Amigos..."
               required
@@ -163,8 +162,8 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
             </label>
             <textarea
               id="description"
-              value={groupDescription}
-              onChange={(e) => setGroupDescription(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all resize-none text-gray-700"
               placeholder="Descreva o propósito deste grupo..."
               rows={3}
@@ -356,7 +355,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !groupName}
+              disabled={isLoading || !title}
               className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Criando...' : 'Criar Grupo'}

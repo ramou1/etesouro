@@ -4,6 +4,8 @@ import { useState } from 'react';
 import BottomTabs from "@/components/BottomTabs";
 import Header from "@/components/Header";
 import NewGroupModal from "@/components/NewGroupModal";
+import NewIncomeCategoryModal from '@/components/NewIncomeCategoryModal';
+import NewExpenseCategoryModal from '@/components/NewExpenseCategoryModal';
 import { useApp } from "@/context/AppContext";
 import { 
   MOCK_GROUPS, 
@@ -22,9 +24,13 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
+
+
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('groups');
     const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+    const [showNewIncomeCategoryModal, setShowNewIncomeCategoryModal] = useState(false);
+    const [showNewExpenseCategoryModal, setShowNewExpenseCategoryModal] = useState(false);
 
     return (
         <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
@@ -88,8 +94,8 @@ export default function SettingsPage() {
 
                     {/* Tab Content */}
                     {activeTab === 'groups' && <GroupsSection onNewGroup={() => setShowNewGroupModal(true)} />}
-                    {activeTab === 'income' && <IncomeCategoriesSection />}
-                    {activeTab === 'expense' && <ExpenseCategoriesSection />}
+                    {activeTab === 'income' && <IncomeCategoriesSection onNewIncomeCategory={() => setShowNewIncomeCategoryModal(true)} />}
+                    {activeTab === 'expense' && <ExpenseCategoriesSection onNewExpenseCategory={() => setShowNewExpenseCategoryModal(true)} />}
                     {activeTab === 'limits' && <BudgetLimitsSection />}
                 </div>
             </div>
@@ -100,6 +106,16 @@ export default function SettingsPage() {
             {/* New Group Modal */}
             {showNewGroupModal && (
                 <NewGroupModal onClose={() => setShowNewGroupModal(false)} />
+            )}
+
+            {/* New Income Modal */}
+            {showNewIncomeCategoryModal && (
+                <NewIncomeCategoryModal onClose={() => setShowNewIncomeCategoryModal(false)} />
+            )}
+
+            {/* New Expense Modal */}
+            {showNewExpenseCategoryModal && (
+                <NewExpenseCategoryModal onClose={() => setShowNewExpenseCategoryModal(false)} />
             )}
         </div>
     )
@@ -124,7 +140,7 @@ function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
                 <div key={group.id} className="bg-white rounded-2xl p-4">
                     <div className="flex justify-between items-start mb-3">
                         <div>
-                            <h3 className="font-semibold text-gray-800">{group.name}</h3>
+                            <h3 className="font-semibold text-gray-800">{group.title}</h3>
                             {group.description && (
                                 <p className="text-xs text-gray-500 mt-1">{group.description}</p>
                             )}
@@ -175,12 +191,12 @@ function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
 }
 
 // Componente para seção de Categorias de Entrada
-function IncomeCategoriesSection() {
+function IncomeCategoriesSection({ onNewIncomeCategory }: { onNewIncomeCategory: () => void }) {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Categorias de Entrada</h2>
-                <button className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
+                <button onClick={onNewIncomeCategory} className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
                     <Plus size={16} />
                     Nova Categoria
                 </button>
@@ -190,8 +206,8 @@ function IncomeCategoriesSection() {
                 {MOCK_INCOME_CATEGORIES.map(category => (
                     <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
                         <div className="flex justify-between items-start">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color}`}>
-                                {category.name}
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color ? category.color : "bg-gray-400"}`}>
+                                {category.title}
                             </span>
                             <div className="flex gap-1">
                                 <button className="text-gray-400 hover:text-gray-600">
@@ -210,12 +226,12 @@ function IncomeCategoriesSection() {
 }
 
 // Componente para seção de Categorias de Saída
-function ExpenseCategoriesSection() {
+function ExpenseCategoriesSection({ onNewExpenseCategory }: { onNewExpenseCategory: () => void }) {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Categorias de Saída</h2>
-                <button className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors">
+                <button onClick={onNewExpenseCategory} className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors">
                     <Plus size={16} />
                     Nova Categoria
                 </button>
@@ -225,8 +241,8 @@ function ExpenseCategoriesSection() {
                 {MOCK_EXPENSE_CATEGORIES.map(category => (
                     <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
                         <div className="flex justify-between items-start">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color}`}>
-                                {category.name}
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color ? category.color : "bg-gray-400"}`}>
+                                {category.title}
                             </span>
                             <div className="flex gap-1">
                                 <button className="text-gray-400 hover:text-gray-600">
