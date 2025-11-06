@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
+import { colors, MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
 
 interface NewExpenseCategoryModalProps {
   onClose: () => void;
@@ -10,7 +10,7 @@ interface NewExpenseCategoryModalProps {
 
 export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryModalProps) {
   const [title, setCategoryTitle] = useState('');
-  const [color, setGroupDescription] = useState('');
+  const [color, setColor] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,21 +26,24 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
     try {
       // Aqui você implementaria a lógica para criar a categoria
       const data = {
-        id: '',
+        id: String(Date.now()), // Gera um ID único
         title: title,
-        color: color,
-        type: "expene"
+        color: color || '#6B7280', // Cor padrão se nenhuma for selecionada
+        type: "expense" // Corrigido o typo "expene" para "expense"
       };
 
-      console.log(data);
+      console.log('Nova categoria criada:', data);
       MOCK_EXPENSE_CATEGORIES.push(data);
       onClose();
     } catch {
-      // Removemos o 'error' não utilizado
-      // alert('Erro ao criar a categoria');
+      alert('Erro ao criar a categoria');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleColorSelect = (selectedColor: string) => {
+    setColor(selectedColor);
   };
 
   return (
@@ -73,19 +76,35 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
             />
           </div>
 
-          {/* Descrição */}
+          {/* Seleção de Cor */}
           <div>
-            <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
-              Descrição (opcional)
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cor
             </label>
-            <textarea
-              id="color"
-              value={color}
-              onChange={(e) => setGroupDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all resize-none text-gray-700"
-              placeholder="Descreva o propósito desta categoria..."
-              rows={3}
-            />
+            <div className="flex gap-2 flex-wrap">
+              {colors.map((cor) => {
+                const selecionada = color === cor;
+                return (
+                  <button
+                    key={cor}
+                    type="button"
+                    onClick={() => handleColorSelect(cor)}
+                    className={`w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110 ${
+                      selecionada 
+                        ? 'ring-2 ring-offset-2 ring-gray-700 scale-110' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    style={{ backgroundColor: cor }}
+                    aria-label={`Selecionar cor ${cor}`}
+                  />
+                );
+              })}
+            </div>
+            {color && (
+              <p className="text-xs text-gray-500 mt-2">
+                Cor selecionada: <span style={{ color: color }}>{color}</span>
+              </p>
+            )}
           </div>
 
           {/* Botões de Ação */}

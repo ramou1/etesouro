@@ -5,7 +5,6 @@ import { User, FinancialData, Transaction, Group } from '@/types';
 import { 
   MOCK_USER, 
   MOCK_GROUPS,
-  MOCK_TRANSACTIONS_BY_GROUP,
   getFinancialDataByGroup
 } from '@/data/mockData';
 

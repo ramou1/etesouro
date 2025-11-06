@@ -1,307 +1,368 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import BottomTabs from "@/components/ui/BottomTabs";
 import Header from "@/components/ui/Header";
 import NewGroupModal from "@/components/modals/NewGroupModal";
-import NewIncomeCategoryModal from '@/components/modals/NewIncomeCategoryModal';
-import NewExpenseCategoryModal from '@/components/modals/NewExpenseCategoryModal';
-import { 
-  MOCK_GROUPS, 
-  MOCK_INCOME_CATEGORIES, 
-  MOCK_EXPENSE_CATEGORIES, 
-  MOCK_BUDGET_LIMITS 
-} from '@/data/mockData';
-import { 
-  Users, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import NewIncomeCategoryModal from "@/components/modals/NewIncomeCategoryModal";
+import NewExpenseCategoryModal from "@/components/modals/NewExpenseCategoryModal";
+import {
+  MOCK_GROUPS,
+  MOCK_INCOME_CATEGORIES,
+  MOCK_EXPENSE_CATEGORIES,
+  MOCK_BUDGET_LIMITS,
+} from "@/data/mockData";
+import {
+  Users,
+  Plus,
+  Edit,
+  Trash2,
   Crown,
   Settings as SettingsIcon,
-  Minus
-} from 'lucide-react';
-import Image from 'next/image';
+  Minus,
+} from "lucide-react";
+import Image from "next/image";
 
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState('groups');
-    const [showNewGroupModal, setShowNewGroupModal] = useState(false);
-    const [showNewIncomeCategoryModal, setShowNewIncomeCategoryModal] = useState(false);
-    const [showNewExpenseCategoryModal, setShowNewExpenseCategoryModal] = useState(false);
-    
-    return (
-        <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
-            {/* Header */}
-            <Header />
-            
-            {/* Main Content */}
-            <div className="flex-1 overflow-y-auto p-4 pb-32">
-                <div className="max-w-md mx-auto">
-                    <div className="text-center my-6">
-                        <h1 className="text-2xl font-semibold text-gray-800">Configurações</h1>
-                    </div>
-                    
-                    {/* Tabs Navigation */}
-                    <div className="grid grid-cols-2 gap-1 mb-8 bg-gray-100 rounded-lg p-1">
-                        <button
-                            onClick={() => setActiveTab('groups')}
-                            className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                                activeTab === 'groups' 
-                                    ? 'bg-yellow-600 text-white' 
-                                    : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                        >
-                            <Users size={16} className="inline mr-2" />
-                            Grupos
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('income')}
-                            className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                                activeTab === 'income' 
-                                    ? 'bg-yellow-600 text-white' 
-                                    : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                        >
-                            <Plus size={16} className="inline mr-2" />
-                            Entradas
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('expense')}
-                            className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                                activeTab === 'expense' 
-                                    ? 'bg-yellow-600 text-white' 
-                                    : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                        >
-                            <Minus size={16} className="inline mr-2" />
-                            Saídas
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('limits')}
-                            className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                                activeTab === 'limits' 
-                                    ? 'bg-yellow-600 text-white' 
-                                    : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                        >
-                            <SettingsIcon size={16} className="inline mr-2" />
-                            Limites
-                        </button>
-                    </div>
+  const [activeTab, setActiveTab] = useState("groups");
+  const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+  const [showNewIncomeCategoryModal, setShowNewIncomeCategoryModal] =
+    useState(false);
+  const [showNewExpenseCategoryModal, setShowNewExpenseCategoryModal] =
+    useState(false);
 
-                    {/* Tab Content */}
-                    {activeTab === 'groups' && <GroupsSection onNewGroup={() => setShowNewGroupModal(true)} />}
-                    {activeTab === 'income' && <IncomeCategoriesSection onNewIncomeCategory={() => setShowNewIncomeCategoryModal(true)} />}
-                    {activeTab === 'expense' && <ExpenseCategoriesSection onNewExpenseCategory={() => setShowNewExpenseCategoryModal(true)} />}
-                    {activeTab === 'limits' && <BudgetLimitsSection />}
-                </div>
-            </div>
-            
-            {/* Bottom Navigation */}
-            <BottomTabs />
+  return (
+    <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
+      {/* Header */}
+      <Header />
 
-            {/* New Group Modal */}
-            {showNewGroupModal && (
-                <NewGroupModal onClose={() => setShowNewGroupModal(false)} />
-            )}
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto p-4 pb-32">
+        <div className="max-w-md mx-auto">
+          <div className="text-center my-6">
+            <h1 className="text-2xl font-semibold text-gray-800">
+              Configurações
+            </h1>
+          </div>
 
-            {/* New Income Modal */}
-            {showNewIncomeCategoryModal && (
-                <NewIncomeCategoryModal onClose={() => setShowNewIncomeCategoryModal(false)} />
-            )}
+          {/* Tabs Navigation */}
+          <div className="grid grid-cols-2 gap-1 mb-8 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("groups")}
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "groups"
+                  ? "bg-yellow-600 text-white"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              <Users size={16} className="inline mr-2" />
+              Grupos
+            </button>
+            <button
+              onClick={() => setActiveTab("income")}
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "income"
+                  ? "bg-yellow-600 text-white"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              <Plus size={16} className="inline mr-2" />
+              Entradas
+            </button>
+            <button
+              onClick={() => setActiveTab("expense")}
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "expense"
+                  ? "bg-yellow-600 text-white"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              <Minus size={16} className="inline mr-2" />
+              Saídas
+            </button>
+            <button
+              onClick={() => setActiveTab("limits")}
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "limits"
+                  ? "bg-yellow-600 text-white"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              <SettingsIcon size={16} className="inline mr-2" />
+              Limites
+            </button>
+          </div>
 
-            {/* New Expense Modal */}
-            {showNewExpenseCategoryModal && (
-                <NewExpenseCategoryModal onClose={() => setShowNewExpenseCategoryModal(false)} />
-            )}
+          {/* Tab Content */}
+          {activeTab === "groups" && (
+            <GroupsSection onNewGroup={() => setShowNewGroupModal(true)} />
+          )}
+          {activeTab === "income" && (
+            <IncomeCategoriesSection
+              onNewIncomeCategory={() => setShowNewIncomeCategoryModal(true)}
+            />
+          )}
+          {activeTab === "expense" && (
+            <ExpenseCategoriesSection
+              onNewExpenseCategory={() => setShowNewExpenseCategoryModal(true)}
+            />
+          )}
+          {activeTab === "limits" && <BudgetLimitsSection />}
         </div>
-    )
+      </div>
+
+      {/* Bottom Navigation */}
+      <BottomTabs />
+
+      {/* New Group Modal */}
+      {showNewGroupModal && (
+        <NewGroupModal onClose={() => setShowNewGroupModal(false)} />
+      )}
+
+      {/* New Income Modal */}
+      {showNewIncomeCategoryModal && (
+        <NewIncomeCategoryModal
+          onClose={() => setShowNewIncomeCategoryModal(false)}
+        />
+      )}
+
+      {/* New Expense Modal */}
+      {showNewExpenseCategoryModal && (
+        <NewExpenseCategoryModal
+          onClose={() => setShowNewExpenseCategoryModal(false)}
+        />
+      )}
+    </div>
+  );
 }
 
 // Componente para seção de Grupos
 function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-800">Grupos</h2>
+        <button
+          onClick={onNewGroup}
+          className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={16} />
+          Novo Grupo
+        </button>
+      </div>
 
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Grupos</h2>
-                <button 
-                    onClick={onNewGroup}
-                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
-                >
-                    <Plus size={16} />
-                    Novo Grupo
-                </button>
+      {MOCK_GROUPS.map((group) => (
+        <div key={group.id} className="bg-white rounded-2xl p-4">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h3 className="font-semibold text-gray-800">{group.title}</h3>
+              {group.description && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {group.description}
+                </p>
+              )}
+              <p className="text-sm text-gray-600 mt-1">
+                {group.members.length} integrantes
+              </p>
             </div>
+            <div className="flex gap-2">
+              <button className="text-gray-400 hover:text-gray-600">
+                <Edit size={20} />
+              </button>
+              <button className="text-gray-400 hover:text-red-600">
+                <Trash2 size={20} />
+              </button>
+            </div>
+          </div>
 
-            {MOCK_GROUPS.map(group => (
-                <div key={group.id} className="bg-white rounded-2xl p-4">
-                    <div className="flex justify-between items-start mb-3">
-                        <div>
-                            <h3 className="font-semibold text-gray-800">{group.title}</h3>
-                            {group.description && (
-                                <p className="text-xs text-gray-500 mt-1">{group.description}</p>
-                            )}
-                            <p className="text-sm text-gray-600 mt-1">{group.members.length} integrantes</p>
-                        </div>
-                        <div className="flex gap-2">
-                            <button className="text-gray-400 hover:text-gray-600">
-                                <Edit size={20} />
-                            </button>
-                            <button className="text-gray-400 hover:text-red-600">
-                                <Trash2 size={20} />
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        {group.members.map(member => (
-                            <div key={member.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <Image 
-                                            src={member.avatar} 
-                                            alt={member.name}
-                                            width={32}
-                                            height={32}
-                                            className="w-8 h-8 rounded-full object-cover"
-                                        />
-                                        {/* Coroa dourada para o dono da conta (admin do primeiro membro) */}
-                                        {member.isAdmin && member.id === '1' && (
-                                            <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5">
-                                                <Crown size={12} className="text-yellow-500 fill-yellow-500" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className="text-sm text-gray-700">{member.name}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    {member.isAdmin && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Admin</span>}
-                                    {member.contributesIncome && <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Renda</span>}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+          <div className="space-y-2">
+            {group.members.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Image
+                      src={member.avatar}
+                      alt={member.name}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                    {/* Coroa dourada para o dono da conta (admin do primeiro membro) */}
+                    {member.isAdmin && member.id === "1" && (
+                      <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5">
+                        <Crown
+                          size={12}
+                          className="text-yellow-500 fill-yellow-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-700">{member.name}</span>
                 </div>
+                <div className="flex gap-2">
+                  {member.isAdmin && (
+                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                      Admin
+                    </span>
+                  )}
+                  {member.contributesIncome && (
+                    <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+                      Renda
+                    </span>
+                  )}
+                </div>
+              </div>
             ))}
+          </div>
         </div>
-    );
+      ))}
+    </div>
+  );
 }
 
 // Componente para seção de Categorias de Entrada
-function IncomeCategoriesSection({ onNewIncomeCategory }: { onNewIncomeCategory: () => void }) {
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Categorias de Entrada</h2>
-                <button onClick={onNewIncomeCategory} className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
-                    <Plus size={16} />
-                    Nova Categoria
-                </button>
-            </div>
+function IncomeCategoriesSection({onNewIncomeCategory}: {onNewIncomeCategory: () => void;}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Categorias de Entrada
+        </h2>
+        <button
+          onClick={onNewIncomeCategory}
+          className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
+        >
+          <Plus size={16} />
+          Nova Categoria
+        </button>
+      </div>
 
-            <div className="grid grid-cols-2 gap-3">
-                {MOCK_INCOME_CATEGORIES.map(category => (
-                    <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
-                        <div className="flex justify-between items-start">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color ? category.color : "bg-gray-400"}`}>
-                                {category.title}
-                            </span>
-                            <div className="flex gap-1">
-                                <button className="text-gray-400 hover:text-gray-600">
-                                    <Edit size={16} />
-                                </button>
-                                <button className="text-gray-400 hover:text-red-600">
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+      <div className="grid grid-cols-2 gap-3">
+        {MOCK_INCOME_CATEGORIES.map((category) => (
+          <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
+            <div className="flex justify-between items-start">
+              <span
+                className="px-3 py-1 rounded-full text-xs font-medium text-gray-700"
+                style={{ backgroundColor: category.color || "#9CA3AF" }}>
+                {category.title}
+              </span>
+              <div className="flex gap-1">
+                <button className="text-gray-400 hover:text-gray-600">
+                  <Edit size={16} />
+                </button>
+                <button className="text-gray-400 hover:text-red-600">
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
-        </div>
-    );
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Componente para seção de Categorias de Saída
-function ExpenseCategoriesSection({ onNewExpenseCategory }: { onNewExpenseCategory: () => void }) {
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Categorias de Saída</h2>
-                <button onClick={onNewExpenseCategory} className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors">
-                    <Plus size={16} />
-                    Nova Categoria
-                </button>
-            </div>
+function ExpenseCategoriesSection({onNewExpenseCategory}: {onNewExpenseCategory: () => void;}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Categorias de Saída
+        </h2>
+        <button
+          onClick={onNewExpenseCategory}
+          className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors"
+        >
+          <Plus size={16} />
+          Nova Categoria
+        </button>
+      </div>
 
-            <div className="grid grid-cols-2 gap-3">
-                {MOCK_EXPENSE_CATEGORIES.map(category => (
-                    <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
-                        <div className="flex justify-between items-start">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color ? category.color : "bg-gray-400"}`}>
-                                {category.title}
-                            </span>
-                            <div className="flex gap-1">
-                                <button className="text-gray-400 hover:text-gray-600">
-                                    <Edit size={16} />
-                                </button>
-                                <button className="text-gray-400 hover:text-red-600">
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+      <div className="grid grid-cols-2 gap-3">
+        {MOCK_EXPENSE_CATEGORIES.map((category) => (
+          <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
+            <div className="flex justify-between items-start">
+                <span
+                className="px-3 py-1 rounded-full text-xs font-medium text-gray-800"
+                style={{ backgroundColor: category.color || "#9CA3AF" }}>
+                {category.title}
+              </span>
+              <div className="flex gap-1">
+                <button className="text-gray-400 hover:text-gray-600">
+                  <Edit size={16} />
+                </button>
+                <button className="text-gray-400 hover:text-red-600">
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
-        </div>
-    );
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Componente para seção de Limites de Orçamento
 function BudgetLimitsSection() {
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Limites de Orçamento</h2>
-                <button className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors">
-                    <SettingsIcon size={16} />
-                    Configurar
-                </button>
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Limites de Orçamento
+        </h2>
+        <button className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors">
+          <SettingsIcon size={16} />
+          Configurar
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {MOCK_BUDGET_LIMITS.map((limit) => (
+          <div key={limit.id} className="bg-white rounded-2xl p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="font-semibold text-gray-800">{limit.name}</h3>
+                <p className="text-sm text-gray-600">{limit.description}</p>
+              </div>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-bold ${limit.color}`}
+              >
+                {limit.percentage}%
+              </span>
             </div>
 
-            <div className="space-y-3">
-                {MOCK_BUDGET_LIMITS.map(limit => (
-                    <div key={limit.id} className="bg-white rounded-2xl p-4">
-                        <div className="flex justify-between items-start mb-3">
-                            <div>
-                                <h3 className="font-semibold text-gray-800">{limit.name}</h3>
-                                <p className="text-sm text-gray-600">{limit.description}</p>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-sm font-bold ${limit.color}`}>
-                                {limit.percentage}%
-                            </span>
-                        </div>
-                        
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                                className={`h-2 rounded-full ${limit.color.includes('red') ? 'bg-red-500' : 
-                                    limit.color.includes('orange') ? 'bg-orange-500' :
-                                    limit.color.includes('green') ? 'bg-green-500' : 'bg-blue-500'}`}
-                                style={{ width: `${limit.percentage}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                ))}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  limit.color.includes("red")
+                    ? "bg-red-500"
+                    : limit.color.includes("orange")
+                    ? "bg-orange-500"
+                    : limit.color.includes("green")
+                    ? "bg-green-500"
+                    : "bg-blue-500"
+                }`}
+                style={{ width: `${limit.percentage}%` }}
+              ></div>
             </div>
+          </div>
+        ))}
+      </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-2">Resumo dos Limites</h3>
-                <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-800">110%</p>
-                    <p className="text-sm text-gray-600">Total do orçamento distribuído</p>
-                </div>
-            </div>
+      <div className="bg-white rounded-2xl shadow-lg p-4">
+        <h3 className="font-semibold text-gray-800 mb-2">Resumo dos Limites</h3>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-gray-800">110%</p>
+          <p className="text-sm text-gray-600">
+            Total do orçamento distribuído
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
