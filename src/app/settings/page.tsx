@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import BottomTabs from "@/components/BottomTabs";
-import Header from "@/components/Header";
-import NewGroupModal from "@/components/NewGroupModal";
-import NewIncomeCategoryModal from '@/components/NewIncomeCategoryModal';
-import NewExpenseCategoryModal from '@/components/NewExpenseCategoryModal';
+import BottomTabs from "@/components/ui/BottomTabs";
+import Header from "@/components/ui/Header";
+import NewGroupModal from "@/components/modals/NewGroupModal";
+import NewIncomeCategoryModal from '@/components/modals/NewIncomeCategoryModal';
+import NewExpenseCategoryModal from '@/components/modals/NewExpenseCategoryModal';
 import { useApp } from "@/context/AppContext";
 import { 
   MOCK_GROUPS, 
@@ -24,14 +24,12 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
-
-
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('groups');
     const [showNewGroupModal, setShowNewGroupModal] = useState(false);
     const [showNewIncomeCategoryModal, setShowNewIncomeCategoryModal] = useState(false);
     const [showNewExpenseCategoryModal, setShowNewExpenseCategoryModal] = useState(false);
-
+    
     return (
         <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
             {/* Header */}
@@ -123,6 +121,7 @@ export default function SettingsPage() {
 
 // Componente para seção de Grupos
 function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
+
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">

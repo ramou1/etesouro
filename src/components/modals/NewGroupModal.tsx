@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { X, Search, Plus } from 'lucide-react';
 import Image from 'next/image';
-import { MOCK_GROUPS } from '@/data/mockData';
+import { MOCK_GROUPS, MOCK_MEMBERS } from '@/data/mockData';
 import { GroupMember } from '@/types';
 
 interface NewGroupModalProps {
@@ -27,37 +27,9 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Membros mockados existentes (poderia vir do contexto)
-  const existingMembers: GroupMember[] = [
-    {
-      id: '2',
-      name: 'Maria Santos',
-      email: 'maria.santos@email.com',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
-      isAdmin: false,
-      contributesIncome: true,
-      groupId: '',
-    },
-    {
-      id: '3',
-      name: 'Pedro Silva',
-      email: 'pedro.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      isAdmin: false,
-      contributesIncome: false,
-      groupId: '',
-    },
-    {
-      id: '4',
-      name: 'Ana Costa',
-      email: 'ana.costa@email.com',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      isAdmin: false,
-      contributesIncome: true,
-      groupId: '',
-    }
-  ];
 
-  const filteredMembers = existingMembers.filter(member => 
+
+  const filteredMembers = MOCK_MEMBERS.filter(member => 
     !selectedMembers.some(sm => sm.id === member.id) &&
     (member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      member.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -171,17 +143,17 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
           </div>
 
           {/* Grupo Temporário */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <input
               type="checkbox"
               id="isTemporary"
               checked={isTemporary}
               onChange={(e) => setIsTemporary(e.target.checked)}
-              className="w-5 h-5 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500"
+              className="w-5 h-5 rounded-md text-yellow-500 border-gray-300 rounded focus:ring-yellow-500"
             />
             <label htmlFor="isTemporary" className="text-sm text-gray-700">
               Este é um grupo temporário
-              <span className="block text-xs text-gray-500">Grupos temporários podem ser arquivados após seu uso</span>
+              <span className="block text-xs text-gray-500">Grupos temporários podem ser arquivados após uso</span>
             </label>
           </div>
 

@@ -82,7 +82,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
               <User className="text-gray-400" size={20} />
               <div>
                 <p className="text-sm text-gray-500">Responsável</p>
-                <p className="font-semibold text-gray-800">Fulano da Silva</p>
+                <p className="font-semibold text-gray-800">{transaction.responsible?.name}</p>
               </div>
             </div>
 

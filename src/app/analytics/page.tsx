@@ -3,8 +3,8 @@
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
-import Header from '@/components/Header';
-import BottomTabs from '@/components/BottomTabs';
+import Header from '@/components/ui/Header';
+import BottomTabs from '@/components/ui/BottomTabs';
 
 export default function AnalyticsPage() {
   const { financialData } = useApp();

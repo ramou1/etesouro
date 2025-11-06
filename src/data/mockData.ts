@@ -1,58 +1,4 @@
-// Arquivo centralizado com todos os dados mockados do usuário
-// Facilita a manutenção e estruturação do banco de dados
-
-import { Group, GroupMember } from "@/types";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  isAuthenticated: boolean;
-}
-
-export interface Category {
-  id: string;
-  title: string;
-  color: string;
-  type: string;
-  // type: 'income' | 'expense';
-}
-
-export interface PaymentMethod {
-  id: string;
-  name: string;
-  icon: string;
-  isActive: boolean;
-}
-
-export interface BudgetLimit {
-  id: string;
-  name: string;
-  description: string;
-  percentage: number;
-  color: string;
-  type: 'essential' | 'fixed' | 'reserve' | 'sporadic';
-}
-
-export interface Transaction {
-  id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  description: string;
-  category: string;
-  date: Date;
-  groupId?: string;
-  userId: string;
-  receipt?: string; // URL ou caminho do comprovante
-}
-
-export interface FinancialData {
-  transactions: Transaction[];
-  totalIncome: number;
-  totalExpenses: number;
-  balance: number;
-}
+import { BudgetLimit, Category, FinancialData, Group, GroupMember, PaymentMethod, Transaction, User } from "@/types";
 
 // DADOS MOCKADOS CENTRALIZADOS
 export const MOCK_USER: User = {
@@ -62,6 +8,36 @@ export const MOCK_USER: User = {
   avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
   isAuthenticated: true
 };
+
+export const MOCK_MEMBERS: GroupMember[] = [
+  {
+    id: '2',
+    name: 'Maria Santos',
+    email: 'maria.santos@email.com',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
+    isAdmin: false,
+    contributesIncome: true,
+    groupId: '',
+  },
+  {
+    id: '3',
+    name: 'Pedro Silva',
+    email: 'pedro.silva@email.com',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+    isAdmin: false,
+    contributesIncome: false,
+    groupId: '',
+  },
+  {
+    id: '4',
+    name: 'Ana Costa',
+    email: 'ana.costa@email.com',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+    isAdmin: false,
+    contributesIncome: true,
+    groupId: '',
+  }
+];
 
 export const MOCK_GROUPS: Group[] = [
   {
@@ -201,7 +177,16 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Salário',
     date: new Date('2024-01-15'),
     userId: '1',
-    receipt: '/receipts/salario-janeiro.pdf'
+    receipt: '/receipts/salario-janeiro.pdf',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '2',
@@ -211,6 +196,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Freelance',
     date: new Date('2024-01-20'),
     userId: '1',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '3',
@@ -220,6 +214,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Alimentação',
     date: new Date('2024-01-18'),
     userId: '1',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '4',
@@ -230,6 +233,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: new Date('2024-01-05'),
     userId: '1',
     receipt: '/receipts/supermercado-18-01.jpg',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '5',
@@ -240,8 +252,17 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: new Date('2024-01-22'),
     userId: '1',
     receipt: '/receipts/supermercado-18-01.pdf',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
-  
+
   // Transações de Maria Santos (id: 2)
   {
     id: '6',
@@ -252,6 +273,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: new Date('2024-01-15'),
     userId: '2',
     receipt: '/receipts/aluguel-janeiro.pdf',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '7',
@@ -261,6 +291,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Alimentação',
     date: new Date('2024-01-17'),
     userId: '2',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '8',
@@ -270,6 +309,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Lazer',
     date: new Date('2024-01-23'),
     userId: '2',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '9',
@@ -279,8 +327,17 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Saúde',
     date: new Date('2024-01-21'),
     userId: '2',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
-  
+
   // Transações de Pedro Silva (id: 3)
   {
     id: '10',
@@ -291,6 +348,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: new Date('2024-01-10'),
     userId: '3',
     receipt: '/receipts/aluguel-janeiro.pdf',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '11',
@@ -300,6 +366,15 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Lazer',
     date: new Date('2024-01-19'),
     userId: '3',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   },
   {
     id: '12',
@@ -309,7 +384,16 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Roupas',
     date: new Date('2024-01-24'),
     userId: '3',
-    receipt: '/receipts/aluguel-janeiro.pdf'
+    receipt: '/receipts/aluguel-janeiro.pdf',
+    responsible: {
+      id: '1',
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      isAdmin: true,
+      contributesIncome: true,
+      groupId: '1'
+    }
   }
 ];
 
@@ -323,10 +407,10 @@ export const MOCK_FINANCIAL_DATA: FinancialData = {
     .reduce((sum, t) => sum + t.amount, 0),
   balance: MOCK_TRANSACTIONS
     .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0) - 
+    .reduce((sum, t) => sum + t.amount, 0) -
     MOCK_TRANSACTIONS
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0)
 };
 
 // Função para obter membros da família (para o dashboard)

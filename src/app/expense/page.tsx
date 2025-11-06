@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
-import Header from '@/components/Header';
-import BottomTabs from '@/components/BottomTabs';
+import Header from '@/components/ui/Header';
+import BottomTabs from '@/components/ui/BottomTabs';
 import TransactionList from '@/components/TransactionList';
-import TransactionDetailsModal from '@/components/TransactionDetailsModal';
+import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
 import { Transaction } from '@/data/mockData'; // Importar do mockData para consistência
 
 export default function ExpensePage() {

@@ -1,9 +1,10 @@
 'use client';
 
+import Image from "next/image";
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
-import { X, Upload, FileText, Image } from 'lucide-react';
-import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
+import { X, Upload, FileText, Check, Image as ImageIcon } from 'lucide-react';
+import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_USER, MOCK_MEMBERS } from '@/data/mockData';
 
 interface TransactionModalProps {
   type: 'income' | 'expense';
@@ -14,6 +15,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedResponsible, setSelectedResponsible] = useState(MOCK_USER.id);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,18 +46,20 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
       }
 
       addTransaction({
-        amount: numericAmount,
-        description: description || selectedCategory || (type === 'income' ? 'Receita' : 'Despesa'),
-        type,
-        date: new Date(),
-        category: selectedCategory || categories[0]?.title || 'Outros',
         userId: user?.id || '1',
-        receipt: receiptUrl // URL do comprovante após upload
+        date: new Date(),
+        type,
+        amount: numericAmount,
+        responsible: selectedResponsible,
+        category: selectedCategory || categories[0]?.title || 'Outros',
+        receipt: receiptUrl, // URL do comprovante após upload
+        description: description || (type === 'income' ? 'Receita' : 'Despesa'),
       });
       
       setAmount('');
       setDescription('');
       setSelectedCategory('');
+      setSelectedResponsible('');
       setReceiptFile(null);
       onClose();
     } catch {
@@ -107,7 +111,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
 
   const getFileIcon = (file: File) => {
     if (file.type.startsWith('image/')) {
-      return <Image size={20} className="text-blue-500" />;
+      return <ImageIcon size={20} className="text-blue-500" />;
     } else if (file.type === 'application/pdf') {
       return <FileText size={20} className="text-red-500" />;
     }
@@ -143,6 +147,47 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
               placeholder="0,00"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Responsável
+            </label>
+            <div className="relative">
+              <select
+                value={selectedResponsible || ""}
+                onChange={(e) => setSelectedResponsible(e.target.value)}
+                className="w-full p-3 rounded-lg border-2 border-gray-200 bg-white appearance-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all text-gray-900"
+              >
+                <option value="">Selecione um responsável</option>
+                {MOCK_MEMBERS.map(member => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Mostrar o membro selecionado com avatar (opcional) */}
+            {/* {selectedResponsible && (
+              <div className="mt-3 flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                <Image 
+                  src={MOCK_MEMBERS.find(m => m.id === selectedResponsible)?.avatar || ""}
+                  alt={MOCK_MEMBERS.find(m => m.id === selectedResponsible)?.name || ""}
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 rounded-full object-cover"
+                />
+                <span className="text-sm text-gray-700">
+                  {MOCK_MEMBERS.find(m => m.id === selectedResponsible)?.name}
+                </span>
+              </div>
+            )} */}
           </div>
 
           <div>

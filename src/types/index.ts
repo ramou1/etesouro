@@ -8,6 +8,7 @@ export interface Transaction {
   groupId?: string;
   userId: string;
   receipt?: string; // URL ou caminho do comprovante
+  responsible: GroupMember;
 }
 
 export interface User {
@@ -52,10 +53,27 @@ export interface Group {
 
 export interface Category {
   id: string;
-  name: string;
+  title: string;
   color: string;
   icon?: string;
-  type: 'income' | 'expense';
+  // type: 'income' | 'expense';
+  type: string;
+}
+
+export interface BudgetLimit {
+  id: string;
+  name: string;
+  description: string;
+  percentage: number;
+  color: string;
+  type: 'essential' | 'fixed' | 'reserve' | 'sporadic';
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: string;
+  isActive: boolean;
 }
 
 export interface BudgetLimit {

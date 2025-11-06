@@ -5,13 +5,13 @@ import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import TransactionModal from '@/components/TransactionModal';
-import TransactionDetailsModal from '@/components/TransactionDetailsModal';
-import Header from '@/components/Header';
+import TransactionModal from '@/components/modals/TransactionModal';
+import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
+import Header from '@/components/ui/Header';
 import Participants from '@/components/Participants';
-import BottomTabs from '@/components/BottomTabs';
+import BottomTabs from '@/components/ui/BottomTabs';
 import { MOCK_GROUPS } from '@/data/mockData';
-import { Transaction } from '@/data/mockData';
+import { Transaction } from '@/types';
 
 export default function DashboardPage() {
   const { getFilteredFinancialData } = useApp();
