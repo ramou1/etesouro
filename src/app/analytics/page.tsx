@@ -5,14 +5,15 @@ import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import Header from '@/components/ui/Header';
 import BottomTabs from '@/components/ui/BottomTabs';
+import { Transaction } from '@/types';
 
 export default function AnalyticsPage() {
   const { financialData } = useApp();
 
   // Calcular estatísticas básicas
   const totalTransactions = financialData.transactions.length;
-  const incomeCount = financialData.transactions.filter(t => t.type === 'income').length;
-  const expenseCount = financialData.transactions.filter(t => t.type === 'expense').length;
+  const incomeCount = financialData.transactions.filter((t: Transaction) => t.type === 'income').length;
+  const expenseCount = financialData.transactions.filter((t: Transaction) => t.type === 'expense').length;
   
   // Calcular média de receitas e despesas
   const avgIncome = incomeCount > 0 ? financialData.totalIncome / incomeCount : 0;
