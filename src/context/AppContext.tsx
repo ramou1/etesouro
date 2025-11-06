@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Transaction, FinancialData, User } from '@/data/mockData';
+import { User, FinancialData, Transaction } from '@/types';
 import { 
   MOCK_USER, 
   MOCK_FINANCIAL_DATA

@@ -15,7 +15,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedResponsible, setSelectedResponsible] = useState(MOCK_USER.id);
+  const [selectedResponsible, setSelectedResponsible] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

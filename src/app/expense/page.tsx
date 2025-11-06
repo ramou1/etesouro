@@ -7,7 +7,7 @@ import Header from '@/components/ui/Header';
 import BottomTabs from '@/components/ui/BottomTabs';
 import TransactionList from '@/components/TransactionList';
 import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
-import { Transaction } from '@/data/mockData'; // Importar do mockData para consistência
+import { Transaction } from '@/types';
 
 export default function ExpensePage() {
   const { getFilteredFinancialData } = useApp();
