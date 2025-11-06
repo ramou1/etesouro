@@ -102,11 +102,6 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
                 );
               })}
             </div>
-            {color && (
-              <p className="text-xs text-gray-500 mt-2">
-                Cor selecionada: <span style={{ color: color }}>{color}</span>
-              </p>
-            )}
           </div>
 
           {/* Botões de Ação */}
