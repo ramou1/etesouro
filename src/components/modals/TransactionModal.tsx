@@ -1,9 +1,9 @@
 'use client';
 
-import Image from "next/image";
+// import Image from "next/image";
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
-import { X, Upload, FileText, Check, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, FileText, Image as ImageIcon } from 'lucide-react';
 import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_USER, MOCK_MEMBERS } from '@/data/mockData';
 
 interface TransactionModalProps {
@@ -15,7 +15,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedResponsible, setSelectedResponsible] = useState('');
+  const [selectedResponsibleId, setSelectedResponsibleId] = useState<string>('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,12 +45,21 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
         receiptUrl = URL.createObjectURL(receiptFile);
       }
 
+      // Buscar o membro responsável baseado no ID
+      const responsibleMember = MOCK_MEMBERS.find(member => member.id === selectedResponsibleId);
+
+      if (!responsibleMember) {
+        alert('Por favor, selecione um responsável válido');
+        setIsLoading(false);
+        return;
+      }
+
       addTransaction({
         userId: user?.id || '1',
         date: new Date(),
         type,
         amount: numericAmount,
-        responsible: selectedResponsible,
+        responsible: responsibleMember,
         category: selectedCategory || categories[0]?.title || 'Outros',
         receipt: receiptUrl, // URL do comprovante após upload
         description: description || (type === 'income' ? 'Receita' : 'Despesa'),
@@ -59,7 +68,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
       setAmount('');
       setDescription('');
       setSelectedCategory('');
-      setSelectedResponsible('');
+      setSelectedResponsibleId('');
       setReceiptFile(null);
       onClose();
     } catch {
@@ -155,8 +164,8 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
             </label>
             <div className="relative">
               <select
-                value={selectedResponsible || ""}
-                onChange={(e) => setSelectedResponsible(e.target.value)}
+                value={selectedResponsibleId}
+                onChange={(e) => setSelectedResponsibleId(e.target.value)}
                 className="w-full p-3 rounded-lg border-2 border-gray-200 bg-white appearance-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all text-gray-900"
               >
                 <option value="">Selecione um responsável</option>

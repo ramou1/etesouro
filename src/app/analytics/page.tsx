@@ -20,7 +20,7 @@ export default function AnalyticsPage() {
   const avgExpense = expenseCount > 0 ? financialData.totalExpenses / expenseCount : 0;
 
   // Calcular saldo médio mensal (simulação)
-  const monthlyBalance = financialData.balance;
+  // const monthlyBalance = financialData.balance;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

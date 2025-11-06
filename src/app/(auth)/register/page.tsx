@@ -45,7 +45,7 @@ export default function RegisterPage() {
         setError('Erro ao criar conta');
       }
     } catch (err) {
-      setError('Erro ao criar conta');
+      setError('Erro ao criar conta' + err);
     } finally {
       setIsLoading(false);
     }

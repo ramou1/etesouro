@@ -6,7 +6,6 @@ import Header from "@/components/ui/Header";
 import NewGroupModal from "@/components/modals/NewGroupModal";
 import NewIncomeCategoryModal from '@/components/modals/NewIncomeCategoryModal';
 import NewExpenseCategoryModal from '@/components/modals/NewExpenseCategoryModal';
-import { useApp } from "@/context/AppContext";
 import { 
   MOCK_GROUPS, 
   MOCK_INCOME_CATEGORIES, 
