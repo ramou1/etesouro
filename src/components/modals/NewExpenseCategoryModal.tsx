@@ -83,6 +83,8 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
             </label>
             <div className="flex gap-2 flex-wrap">
               {colors.map((cor) => {
+                // Garante que 'cor' é uma string antes de usar
+                if (!cor) return null;
                 const selecionada = color === cor;
                 return (
                   <button
