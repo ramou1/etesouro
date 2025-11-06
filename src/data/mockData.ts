@@ -167,256 +167,270 @@ export const MOCK_BUDGET_LIMITS: BudgetLimit[] = [
   }
 ];
 
-export const MOCK_TRANSACTIONS: Transaction[] = [
-  // Transações de João Silva (id: 1)
-  {
-    id: '1',
-    type: 'income',
-    amount: 5000,
-    description: 'Salário mensal',
-    category: 'Salário',
-    date: new Date('2024-01-15'),
-    userId: '1',
-    receipt: '/receipts/salario-janeiro.pdf',
-    responsible: {
+// Transações organizadas por grupo
+export const MOCK_TRANSACTIONS_BY_GROUP: Record<string, Transaction[]> = {
+  '1': [ // Grupo Família
+    // Transações de João Silva
+    {
       id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '2',
-    type: 'income',
-    amount: 1200,
-    description: 'Freelance desenvolvimento',
-    category: 'Freelance',
-    date: new Date('2024-01-20'),
-    userId: '1',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '3',
-    type: 'expense',
-    amount: 800,
-    description: 'Supermercado',
-    category: 'Alimentação',
-    date: new Date('2024-01-18'),
-    userId: '1',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '4',
-    type: 'expense',
-    amount: 1200,
-    description: 'Aluguel',
-    category: 'Moradia',
-    date: new Date('2024-01-05'),
-    userId: '1',
-    receipt: '/receipts/supermercado-18-01.jpg',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '5',
-    type: 'expense',
-    amount: 300,
-    description: 'Combustível',
-    category: 'Transporte',
-    date: new Date('2024-01-22'),
-    userId: '1',
-    receipt: '/receipts/supermercado-18-01.pdf',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
+      type: 'income',
+      amount: 5000,
+      description: 'Salário mensal',
+      category: 'Salário',
+      date: new Date('2024-01-15'),
+      userId: '1',
+      groupId: '1',
+      receipt: '/receipts/salario-janeiro.pdf',
+      responsible: {
+        id: '1',
+        name: 'João Silva',
+        email: 'joao.silva@email.com',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+        groupId: '1'
+      }
+    },
+    {
+      id: '2',
+      type: 'income',
+      amount: 1200,
+      description: 'Freelance desenvolvimento',
+      category: 'Freelance',
+      date: new Date('2024-01-20'),
+      userId: '1',
+      groupId: '1',
+      responsible: {
+        id: '1',
+        name: 'João Silva',
+        email: 'joao.silva@email.com',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+        groupId: '1'
+      }
+    },
+    {
+      id: '3',
+      type: 'expense',
+      amount: 800,
+      description: 'Supermercado',
+      category: 'Alimentação',
+      date: new Date('2024-01-18'),
+      userId: '1',
+      groupId: '1',
+      responsible: {
+        id: '1',
+        name: 'João Silva',
+        email: 'joao.silva@email.com',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+        groupId: '1'
+      }
+    },
+    {
+      id: '4',
+      type: 'expense',
+      amount: 1200,
+      description: 'Aluguel',
+      category: 'Moradia',
+      date: new Date('2024-01-05'),
+      userId: '1',
+      groupId: '1',
+      receipt: '/receipts/supermercado-18-01.jpg',
+      responsible: {
+        id: '1',
+        name: 'João Silva',
+        email: 'joao.silva@email.com',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+        groupId: '1'
+      }
+    },
 
-  // Transações de Maria Santos (id: 2)
-  {
-    id: '6',
-    type: 'income',
-    amount: 4500,
-    description: 'Salário mensal',
-    category: 'Salário',
-    date: new Date('2024-01-15'),
-    userId: '2',
-    receipt: '/receipts/aluguel-janeiro.pdf',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '7',
-    type: 'expense',
-    amount: 600,
-    description: 'Supermercado',
-    category: 'Alimentação',
-    date: new Date('2024-01-17'),
-    userId: '2',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '8',
-    type: 'expense',
-    amount: 150,
-    description: 'Cinema',
-    category: 'Lazer',
-    date: new Date('2024-01-23'),
-    userId: '2',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '9',
-    type: 'expense',
-    amount: 200,
-    description: 'Farmácia',
-    category: 'Saúde',
-    date: new Date('2024-01-21'),
-    userId: '2',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
+    // Transações de Maria Santos
+    {
+      id: '5',
+      type: 'income',
+      amount: 4500,
+      description: 'Salário mensal',
+      category: 'Salário',
+      date: new Date('2024-01-15'),
+      userId: '2',
+      groupId: '1',
+      receipt: '/receipts/aluguel-janeiro.pdf',
+      responsible: {
+        id: '2',
+        name: 'Maria Santos',
+        email: 'maria.santos@email.com',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
+        isAdmin: false,
+        contributesIncome: true,
+        groupId: '1'
+      }
+    },
+    {
+      id: '6',
+      type: 'expense',
+      amount: 600,
+      description: 'Supermercado',
+      category: 'Alimentação',
+      date: new Date('2024-01-17'),
+      userId: '2',
+      groupId: '1',
+      responsible: {
+        id: '2',
+        name: 'Maria Santos',
+        email: 'maria.santos@email.com',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
+        isAdmin: false,
+        contributesIncome: true,
+        groupId: '1'
+      }
+    },
 
-  // Transações de Pedro Silva (id: 3)
-  {
-    id: '10',
-    type: 'expense',
-    amount: 250,
-    description: 'Materiais escolares',
-    category: 'Educação',
-    date: new Date('2024-01-10'),
-    userId: '3',
-    receipt: '/receipts/aluguel-janeiro.pdf',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
+    // Transações de Pedro Silva
+    {
+      id: '7',
+      type: 'expense',
+      amount: 250,
+      description: 'Materiais escolares',
+      category: 'Educação',
+      date: new Date('2024-01-10'),
+      userId: '3',
+      groupId: '1',
+      receipt: '/receipts/aluguel-janeiro.pdf',
+      responsible: {
+        id: '3',
+        name: 'Pedro Silva',
+        email: 'pedro.silva@email.com',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+        isAdmin: false,
+        contributesIncome: false,
+        groupId: '1'
+      }
     }
-  },
-  {
-    id: '11',
-    type: 'expense',
-    amount: 180,
-    description: 'Pizza com amigos',
-    category: 'Lazer',
-    date: new Date('2024-01-19'),
-    userId: '3',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  },
-  {
-    id: '12',
-    type: 'expense',
-    amount: 320,
-    description: 'Tênis novo',
-    category: 'Roupas',
-    date: new Date('2024-01-24'),
-    userId: '3',
-    receipt: '/receipts/aluguel-janeiro.pdf',
-    responsible: {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isAdmin: true,
-      contributesIncome: true,
-      groupId: '1'
-    }
-  }
-];
+  ],
+  '2': [ // Grupo Viagem
+    // Transações de Ana Costa
+    {
+      id: '8',
+      type: 'income',
+      amount: 2000,
+      description: 'Contribuição viagem',
+      category: 'Economias',
+      date: new Date('2024-01-10'),
+      userId: '4',
+      groupId: '2',
+      responsible: {
+        id: '4',
+        name: 'Ana Costa',
+        email: 'ana.costa@email.com',
+        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+        groupId: '2'
+      }
+    },
+    {
+      id: '9',
+      type: 'expense',
+      amount: 800,
+      description: 'Reserva hotel',
+      category: 'Hospedagem',
+      date: new Date('2024-01-12'),
+      userId: '4',
+      groupId: '2',
+      responsible: {
+        id: '4',
+        name: 'Ana Costa',
+        email: 'ana.costa@email.com',
+        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+        groupId: '2'
+      }
+    },
 
-export const MOCK_FINANCIAL_DATA: FinancialData = {
-  transactions: MOCK_TRANSACTIONS,
-  totalIncome: MOCK_TRANSACTIONS
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0),
-  totalExpenses: MOCK_TRANSACTIONS
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0),
-  balance: MOCK_TRANSACTIONS
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0) -
-    MOCK_TRANSACTIONS
-      .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0)
+    // Transações de Carlos Lima
+    {
+      id: '10',
+      type: 'income',
+      amount: 1500,
+      description: 'Contribuição viagem',
+      category: 'Economias',
+      date: new Date('2024-01-08'),
+      userId: '5',
+      groupId: '2',
+      responsible: {
+        id: '5',
+        name: 'Carlos Lima',
+        email: 'carlos.lima@email.com',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: false,
+        contributesIncome: true,
+        groupId: '2'
+      }
+    },
+    {
+      id: '11',
+      type: 'expense',
+      amount: 500,
+      description: 'Passagens aéreas',
+      category: 'Transporte',
+      date: new Date('2024-01-15'),
+      userId: '5',
+      groupId: '2',
+      responsible: {
+        id: '5',
+        name: 'Carlos Lima',
+        email: 'carlos.lima@email.com',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: false,
+        contributesIncome: true,
+        groupId: '2'
+      }
+    }
+  ]
 };
 
-// Função para obter membros da família (para o dashboard)
-export const getFamilyMembers = () => {
-  const familyGroup = MOCK_GROUPS.find(group => group.title === 'Família');
-  return familyGroup ? familyGroup.members : [];
+// Função para obter todas as transações (para compatibilidade)
+export const MOCK_TRANSACTIONS: Transaction[] = Object.values(MOCK_TRANSACTIONS_BY_GROUP).flat();
+
+// Função para obter transações por grupo
+export const getTransactionsByGroup = (groupId: string): Transaction[] => {
+  return MOCK_TRANSACTIONS_BY_GROUP[groupId] || [];
+};
+
+// Função para obter dados financeiros por grupo
+export const getFinancialDataByGroup = (groupId: string): FinancialData => {
+  const transactions = getTransactionsByGroup(groupId);
+
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  return {
+    transactions,
+    totalIncome,
+    totalExpenses,
+    balance: totalIncome - totalExpenses,
+  };
+};
+
+// Dados financeiros iniciais (usando o grupo família como padrão)
+export const MOCK_FINANCIAL_DATA: FinancialData = getFinancialDataByGroup('1');
+
+// Função para obter membros do grupo ativo
+export const getActiveGroupMembers = (groupId: string) => {
+  const group = MOCK_GROUPS.find(group => group.id === groupId);
+  return group ? group.members : [];
 };
 
 // Função para obter todas as categorias
@@ -425,6 +439,13 @@ export const getAllCategories = () => {
 };
 
 // Função para obter transações por tipo
-export const getTransactionsByType = (type: 'income' | 'expense') => {
-  return MOCK_TRANSACTIONS.filter(transaction => transaction.type === type);
+export const getTransactionsByType = (type: 'income' | 'expense', groupId?: string) => {
+  const transactions = groupId ? getTransactionsByGroup(groupId) : MOCK_TRANSACTIONS;
+  return transactions.filter(transaction => transaction.type === type);
+};
+
+// Função para obter membros da família (mantida para compatibilidade)
+export const getFamilyMembers = () => {
+  const familyGroup = MOCK_GROUPS.find(group => group.title === 'Família');
+  return familyGroup ? familyGroup.members : [];
 };

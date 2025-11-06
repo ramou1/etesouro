@@ -1,12 +1,11 @@
+// src/components/Participants.tsx
 'use client';
 
 import Image from "next/image";
-import { getFamilyMembers } from '@/data/mockData';
 import { useApp } from '@/context/AppContext';
 
 export default function Participants() {
-    const participants = getFamilyMembers();
-    const { selectedParticipants, toggleParticipant } = useApp();
+    const { activeGroup, selectedParticipants, toggleParticipant } = useApp();
 
     const isDisabled = (participantId: string) => {
         return selectedParticipants.includes(participantId);
@@ -15,7 +14,7 @@ export default function Participants() {
     return (
         <div className="fixed bottom-16 left-0 right-0 bg-yellow-300 py-2 px-4 z-20 h-8">
             <div className="flex justify-center space-x-4 -mt-8">
-                {participants.map((participant) => (
+                {activeGroup.members.map((participant) => (
                     <button
                         key={participant.id}
                         onClick={() => toggleParticipant(participant.id)}

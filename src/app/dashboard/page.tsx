@@ -1,41 +1,34 @@
+// src/app/dashboard/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import TransactionModal from '@/components/modals/TransactionModal';
 import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
 import Header from '@/components/ui/Header';
 import Participants from '@/components/Participants';
 import BottomTabs from '@/components/ui/BottomTabs';
-import { MOCK_GROUPS } from '@/data/mockData';
 import { Transaction } from '@/types';
 
 export default function DashboardPage() {
-  const { getFilteredFinancialData } = useApp();
+  const { activeGroup, groups, setActiveGroup, getFilteredFinancialData } = useApp();
   const router = useRouter();
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('M');
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
 
   // Usar os dados filtrados
   const filteredFinancialData = getFilteredFinancialData();
 
-  // Buscar o grupo ativo dos dados mockados
-  const activeGroup = MOCK_GROUPS.find(group => group.isTemporary) || MOCK_GROUPS[0];
-
   const handleAddTransaction = (type: 'income' | 'expense') => {
     setTransactionType(type);
     setShowTransactionModal(true);
-  };
-
-  const handleTransactionClick = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setShowTransactionDetails(true);
   };
 
   const handleIncomeClick = () => {
@@ -44,6 +37,11 @@ export default function DashboardPage() {
 
   const handleExpenseClick = () => {
     router.push('/expense');
+  };
+
+  const handleGroupSelect = (group: typeof groups[0]) => {
+    setActiveGroup(group);
+    setShowGroupSelector(false);
   };
 
   // Função para formatar a data atual
@@ -94,10 +92,37 @@ export default function DashboardPage() {
           <h3 className="text-lg font-bold text-black">{getCurrentDateRange()}</h3>
         </div>
 
-        {/* Nome do Grupo Ativo */}
+        {/* Nome do Grupo Ativo com Seletor */}
         <div className="flex justify-center items-center mb-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
-            <span className="text-black font-medium text-sm">{activeGroup.title}</span>
+          <div className="relative">
+            <button
+              onClick={() => setShowGroupSelector(!showGroupSelector)}
+              className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 hover:bg-white/30 transition-all"
+            >
+              <span className="text-black font-medium text-sm">{activeGroup.title}</span>
+              <ChevronDown size={16} className="text-black" />
+            </button>
+
+            {/* Dropdown de Grupos */}
+            {showGroupSelector && (
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-30">
+                <div className="py-1">
+                  {groups.map((group) => (
+                    <button
+                      key={group.id}
+                      onClick={() => handleGroupSelect(group)}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                        group.id === activeGroup.id
+                          ? 'bg-yellow-50 text-yellow-700 font-medium'
+                          : 'text-gray-700'
+                      }`}
+                    >
+                      {group.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -171,6 +196,14 @@ export default function DashboardPage() {
             setShowTransactionDetails(false);
             setSelectedTransaction(null);
           }}
+        />
+      )}
+
+      {/* Overlay para fechar o dropdown quando clicar fora */}
+      {showGroupSelector && (
+        <div 
+          className="fixed inset-0 z-20" 
+          onClick={() => setShowGroupSelector(false)}
         />
       )}
     </div>

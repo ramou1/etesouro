@@ -32,11 +32,13 @@ export default function DeleteConfirmationModal({
         {/* Content */}
         <div className="mb-6">
           <p className="text-gray-600 mb-2">
-            Tem certeza que deseja excluir o grupo:
+            Tem certeza que deseja excluir o grupo{" "}
+            <span className="text-lg font-semibold text-gray-800 mb-4">
+              {groupName}
+            </span>
+            ?
           </p>
-          <p className="text-lg font-semibold text-gray-800 mb-4">
-            "{groupName}"
-          </p>
+
           <p className="text-sm text-red-600">
             ⚠️ Esta ação não pode ser desfeita. Todas as transações e dados
             deste grupo serão perdidos.

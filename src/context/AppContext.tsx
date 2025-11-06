@@ -1,15 +1,20 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, FinancialData, Transaction } from '@/types';
+import { User, FinancialData, Transaction, Group } from '@/types';
 import { 
   MOCK_USER, 
-  MOCK_FINANCIAL_DATA
+  MOCK_GROUPS,
+  MOCK_TRANSACTIONS_BY_GROUP,
+  getFinancialDataByGroup
 } from '@/data/mockData';
 
 interface AppContextType {
   user: User | null;
   financialData: FinancialData;
+  activeGroup: Group;
+  setActiveGroup: (group: Group) => void;
+  groups: Group[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   removeTransaction: (id: string) => void;
   login: (email: string, password: string) => Promise<boolean>;
@@ -24,7 +29,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [financialData, setFinancialData] = useState<FinancialData>(MOCK_FINANCIAL_DATA);
+  const [activeGroup, setActiveGroup] = useState<Group>(MOCK_GROUPS[0]);
+  const [financialData, setFinancialData] = useState<FinancialData>(getFinancialDataByGroup(MOCK_GROUPS[0].id));
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
   useEffect(() => {
@@ -33,6 +39,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  // Atualizar financialData quando o grupo ativo mudar
+  useEffect(() => {
+    const newFinancialData = getFinancialDataByGroup(activeGroup.id);
+    setFinancialData(newFinancialData);
+  }, [activeGroup]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // Simula uma chamada assíncrona
@@ -88,6 +100,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newTransaction: Transaction = {
       ...transaction,
       id: String(Date.now()),
+      groupId: activeGroup.id,
     };
 
     setFinancialData(prev => {
@@ -119,7 +132,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const getFilteredFinancialData = (): FinancialData => {
-    // Se nenhum participante está desabilitado, retorna os dados completos
+    // Se nenhum participante está desabilitado, retorna os dados completos do grupo ativo
     if (selectedParticipants.length === 0) {
       return financialData;
     }
@@ -149,7 +162,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider 
       value={{ 
         user, 
-        financialData, 
+        financialData,
+        activeGroup,
+        setActiveGroup,
+        groups: MOCK_GROUPS,
         login, 
         logout,
         register,

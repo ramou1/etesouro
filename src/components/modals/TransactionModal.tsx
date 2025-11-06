@@ -4,7 +4,7 @@
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { X, Upload, FileText, Image as ImageIcon } from 'lucide-react';
-import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_USER, MOCK_MEMBERS } from '@/data/mockData';
+import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_MEMBERS } from '@/data/mockData';
 
 interface TransactionModalProps {
   type: 'income' | 'expense';
@@ -20,8 +20,9 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { addTransaction, user } = useApp();
+  const { addTransaction, user, activeGroup } = useApp();
 
+  const members = activeGroup.members;
   // Obter categorias baseadas no tipo de transação
   const categories = type === 'income' ? MOCK_INCOME_CATEGORIES : MOCK_EXPENSE_CATEGORIES;
 
@@ -169,7 +170,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
                 className="w-full p-3 rounded-lg border-2 border-gray-200 bg-white appearance-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all text-gray-900"
               >
                 <option value="">Selecione um responsável</option>
-                {MOCK_MEMBERS.map(member => (
+                {members.map(member => (
                   <option key={member.id} value={member.id}>
                     {member.name}
                   </option>
@@ -186,14 +187,14 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
             {/* {selectedResponsible && (
               <div className="mt-3 flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                 <Image 
-                  src={MOCK_MEMBERS.find(m => m.id === selectedResponsible)?.avatar || ""}
-                  alt={MOCK_MEMBERS.find(m => m.id === selectedResponsible)?.name || ""}
+                  src={members.find(m => m.id === selectedResponsible)?.avatar || ""}
+                  alt={members.find(m => m.id === selectedResponsible)?.name || ""}
                   width={24}
                   height={24}
                   className="w-6 h-6 rounded-full object-cover"
                 />
                 <span className="text-sm text-gray-700">
-                  {MOCK_MEMBERS.find(m => m.id === selectedResponsible)?.name}
+                  {members.find(m => m.id === selectedResponsible)?.name}
                 </span>
               </div>
             )} */}
