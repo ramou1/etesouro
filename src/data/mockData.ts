@@ -1,4 +1,4 @@
-import { BudgetLimit, Category, FinancialData, Group, GroupMember, PaymentMethod, Transaction, User } from "@/types";
+import { BudgetLimit, Category, FinancialData, Group, GroupMember, Transaction, User } from "@/types";
 
 // Paleta de cores 
 export const colors = [,
@@ -134,7 +134,7 @@ export const MOCK_EXPENSE_CATEGORIES: Category[] = [
   { id: '7', title: 'Roupas', color: '#FFD6E7', type: 'expense' }
 ];
 
-export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
+export const MOCK_PAYMENT_METHODS: any = [
   { id: '1', name: 'Dinheiro', icon: '💵', isActive: true },
   { id: '2', name: 'Cartão de Débito', icon: '💳', isActive: true },
   { id: '3', name: 'Cartão de Crédito', icon: '💳', isActive: true },

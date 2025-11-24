@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import Header from '@/components/ui/Header';
 import BottomTabs from '@/components/ui/BottomTabs';
 import { Transaction } from '@/types';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 export default function AnalyticsPage() {
   const { financialData } = useApp();
@@ -15,12 +16,11 @@ export default function AnalyticsPage() {
   const incomeCount = financialData.transactions.filter((t: Transaction) => t.type === 'income').length;
   const expenseCount = financialData.transactions.filter((t: Transaction) => t.type === 'expense').length;
   
-  // Calcular média de receitas e despesas
-  const avgIncome = incomeCount > 0 ? financialData.totalIncome / incomeCount : 0;
-  const avgExpense = expenseCount > 0 ? financialData.totalExpenses / expenseCount : 0;
-
-  // Calcular saldo médio mensal (simulação)
-  // const monthlyBalance = financialData.balance;
+  // Dados para o gráfico de pizza
+  const pieData = [
+    { name: 'Receitas', value: financialData.totalIncome, color: '#16a34a' },
+    { name: 'Despesas', value: financialData.totalExpenses, color: '#dc2626' }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -74,25 +74,40 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Médias */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/50 rounded-2xl p-4">
-              <div className="text-center">
-                <p className="text-gray-600 text-sm mb-1">Média Receitas</p>
-                <p className="text-lg font-bold text-green-600">
-                  {formatCurrency(avgIncome)}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/50 rounded-2xl p-4">
-              <div className="text-center">
-                <p className="text-gray-600 text-sm mb-1">Média Despesas</p>
-                <p className="text-lg font-bold text-red-600">
-                  {formatCurrency(avgExpense)}
-                </p>
-              </div>
-            </div>
+          {/* Gráfico de Pizza - Receitas vs Despesas */}
+          <div className="bg-white/50 rounded-2xl p-6">
+            <h3 className="text-lg font-semibold text-gray-800 text-center">
+              Receitas vs Despesas
+            </h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value)}
+                />
+                <Legend 
+                  verticalAlign="bottom"
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                  formatter={(value) => {
+                    const item = pieData.find(d => d.name === value);
+                    return `${value}: ${formatCurrency(item?.value || 0)}`;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
           {/* Resumo Geral */}

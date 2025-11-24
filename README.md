@@ -11,7 +11,7 @@ Um aplicativo web para controle de finanças pessoais focado em evitar endividam
 - **Categorização**: Sistema completo de categorias para receitas e despesas
 - **Grupos**: Gerenciamento de grupos familiares e de viagem
 - **Configurações**: Página completa com todas as configurações
-- **Relatórios**: Análise financeira com estatísticas detalhadas
+- **Relatórios**: Análise financeira com estatísticas detalhadas e gráficos interativos
 - **Saldo Automático**: Cálculo automático do saldo (receitas - despesas)
 - **Interface Mobile**: Design responsivo otimizado para celulares
 - **Dados Centralizados**: Sistema de dados mockados para desenvolvimento
@@ -25,6 +25,7 @@ Um aplicativo web para controle de finanças pessoais focado em evitar endividam
 - **TypeScript** - Tipagem estática
 - **Tailwind CSS** - Estilização
 - **Lucide React** - Ícones
+- **Recharts** - Biblioteca de gráficos e visualizações
 - **Context API** - Gerenciamento de estado
 
 ## 📱 Layout Mobile
@@ -107,6 +108,7 @@ src/
 
 ## 🔮 Próximas Funcionalidades
 
+- [x] Gráficos de pizza para comparação de receitas e despesas
 - [ ] Relatórios e gráficos avançados
 - [ ] Filtros por período
 - [ ] Exportação de dados
