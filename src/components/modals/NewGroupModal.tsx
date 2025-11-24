@@ -24,16 +24,32 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
   const [newMemberAvatar, setNewMemberAvatar] = useState('');
   const [contributesIncome, setContributesIncome] = useState(false);
 
+  // Imagens temporárias para avatares
+  const avatarOptions = [
+    { id: 'avatar1', url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', name: 'Avatar 1' },
+    { id: 'avatar2', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face', name: 'Avatar 2' },
+    { id: 'avatar3', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', name: 'Avatar 3' },
+    { id: 'avatar4', url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', name: 'Avatar 4' },
+    { id: 'avatar5', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', name: 'Avatar 5' },
+    { id: 'avatar6', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face', name: 'Avatar 6' },
+    { id: 'avatar7', url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=face', name: 'Avatar 7' },
+    { id: 'avatar8', url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face', name: 'Avatar 8' },
+    { id: 'avatar9', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face', name: 'Avatar 9' },
+  ];
+
   const [isLoading, setIsLoading] = useState(false);
 
   // Membros mockados existentes (poderia vir do contexto)
 
 
-  const filteredMembers = MOCK_MEMBERS.filter(member => 
-    !selectedMembers.some(sm => sm.id === member.id) &&
-    (member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     member.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Só mostrar membros quando houver termo de busca
+  const filteredMembers = searchTerm.trim() 
+    ? MOCK_MEMBERS.filter(member => 
+        !selectedMembers.some(sm => sm.id === member.id) &&
+        (member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         member.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    : [];
 
   const toggleMember = (member: GroupMember) => {
     if (selectedMembers.some(m => m.id === member.id)) {
@@ -53,7 +69,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       id: `temp-${Date.now()}`,
       name: newMemberName,
       email: newMemberEmail,
-      avatar: newMemberAvatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=150&h=150&fit=crop&crop=face',
+      avatar: newMemberAvatar || avatarOptions[0].url,
       isAdmin: false,
       contributesIncome: contributesIncome
     };
@@ -61,7 +77,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
     setSelectedMembers([...selectedMembers, newMember]);
     setNewMemberName('');
     setNewMemberEmail('');
-    setNewMemberAvatar('');
+    setNewMemberAvatar(avatarOptions[0].url); // Reset para primeira imagem
     setContributesIncome(false);
     setIsAddingManually(false);
   };
@@ -198,7 +214,12 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
               <h3 className="text-sm font-medium text-gray-700">Adicionar Membros</h3>
               <button
                 type="button"
-                onClick={() => setIsAddingManually(!isAddingManually)}
+                onClick={() => {
+                  setIsAddingManually(!isAddingManually);
+                  if (!isAddingManually && !newMemberAvatar) {
+                    setNewMemberAvatar(avatarOptions[0].url);
+                  }
+                }}
                 className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
               >
                 <Plus size={16} />
@@ -221,27 +242,30 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
                 </div>
 
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {filteredMembers.map(member => (
-                    <div
-                      key={member.id}
-                      onClick={() => toggleMember(member)}
-                      className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                    >
-                      <Image 
-                        src={member.avatar} 
-                        alt={member.name} 
-                        width={40} 
-                        height={40}
-                        className="w-10 h-10 rounded-full object-cover" 
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-800">{member.name}</p>
-                        <p className="text-xs text-gray-500">{member.email}</p>
+                  {filteredMembers.length > 0 ? (
+                    filteredMembers.map(member => (
+                      <div
+                        key={member.id}
+                        onClick={() => toggleMember(member)}
+                        className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                      >
+                        <Image 
+                          src={member.avatar} 
+                          alt={member.name} 
+                          width={40} 
+                          height={40}
+                          className="w-10 h-10 rounded-full object-cover" 
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-800">{member.name}</p>
+                          <p className="text-xs text-gray-500">{member.email}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  {filteredMembers.length === 0 && searchTerm && (
+                    ))
+                  ) : searchTerm.trim() ? (
                     <p className="text-sm text-gray-500 text-center py-4">Nenhum membro encontrado</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">Digite um nome ou email para buscar</p>
                   )}
                 </div>
               </div>
@@ -256,7 +280,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
                     type="text"
                     value={newMemberName}
                     onChange={(e) => setNewMemberName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none text-sm text-gray-900"
                     placeholder="Nome completo"
                   />
                 </div>
@@ -267,20 +291,38 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
                     type="email"
                     value={newMemberEmail}
                     onChange={(e) => setNewMemberEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none text-sm text-gray-900"
                     placeholder="email@exemplo.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">URL da Foto (opcional)</label>
-                  <input
-                    type="url"
-                    value={newMemberAvatar}
-                    onChange={(e) => setNewMemberAvatar(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none text-sm"
-                    placeholder="https://..."
-                  />
+                  <label className="block text-xs font-medium text-gray-700 mb-2">Foto do Perfil</label>
+                  <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-2 bg-white rounded-lg border border-gray-200">
+                    {avatarOptions.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        type="button"
+                        onClick={() => setNewMemberAvatar(avatar.url)}
+                        className={`relative w-12 h-12 rounded-full overflow-hidden border-2 transition-all hover:scale-110 ${
+                          newMemberAvatar === avatar.url
+                            ? 'border-yellow-500 ring-2 ring-yellow-300'
+                            : 'border-gray-300'
+                        }`}
+                      >
+                        <Image
+                          src={avatar.url}
+                          alt={avatar.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {!newMemberAvatar && (
+                    <p className="text-xs text-gray-500 mt-1">Selecione uma foto (opcional)</p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
