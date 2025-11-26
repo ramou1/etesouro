@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, FinancialData, Transaction, Group } from '@/types';
 import { 
-  MOCK_USER, 
   MOCK_GROUPS,
   getFinancialDataByGroup
 } from '@/data/mockData';
@@ -108,9 +107,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const result = await loginWithEmail(email, password);
       // O estado do usuário será atualizado automaticamente pelo onAuthStateChanged
       return { success: result.success, error: result.error };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao fazer login:', error);
-      return { success: false, error: error.message || 'Erro ao fazer login' };
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao fazer login';
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -128,9 +128,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const result = await registerWithEmail(name, email, password);
       // O estado do usuário será atualizado automaticamente pelo onAuthStateChanged
       return { success: result.success, error: result.error };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao registrar:', error);
-      return { success: false, error: error.message || 'Erro ao criar conta' };
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar conta';
+      return { success: false, error: errorMessage };
     }
   };
 

@@ -30,9 +30,9 @@ export default function LoginPage() {
         // A mensagem de erro já vem tratada e em português do serviço de autenticação
         setError(result.error || 'Email ou senha incorretos');
       }
-    } catch (err: any) {
+    } catch (err) {
       // Tratar erros inesperados
-      const errorMessage = err?.message || 'Erro ao fazer login';
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao fazer login';
       if (errorMessage.includes('invalid-credential') || errorMessage.includes('user-not-found')) {
         setError('Email ou senha incorretos');
       } else {

@@ -16,16 +16,30 @@ export interface AuthError {
 }
 
 // Converter erro do Firebase para mensagem amigável em português
-const getErrorMessage = (error: any): string => {
+const getErrorMessage = (error: unknown): string => {
   // Extrair o código do erro, mesmo se vier em formato diferente
-  let code = error.code;
+  let code: string | undefined;
+  
+  // Verificar se o erro tem a propriedade code
+  if (error && typeof error === 'object' && 'code' in error) {
+    code = error.code as string;
+  }
   
   // Se não tiver code, tentar extrair da mensagem
-  if (!code && error.message) {
-    const match = error.message.match(/\(([^)]+)\)/);
+  const errorMessage = error && typeof error === 'object' && 'message' in error 
+    ? String(error.message) 
+    : '';
+  
+  if (!code && errorMessage) {
+    const match = errorMessage.match(/\(([^)]+)\)/);
     if (match) {
       code = match[1];
     }
+  }
+  
+  // Tentar extrair código de diferentes formatos de erro do Firebase
+  if (!code && errorMessage.includes('invalid-credential')) {
+    code = 'auth/invalid-credential';
   }
   
   switch (code) {
@@ -51,7 +65,7 @@ const getErrorMessage = (error: any): string => {
       return 'Erro de conexão. Verifique sua internet';
     default:
       // Se não encontrar código específico, retornar mensagem genérica
-      if (error.message && error.message.includes('invalid-credential')) {
+      if (errorMessage && errorMessage.includes('invalid-credential')) {
         return 'Email ou senha incorretos';
       }
       return 'Erro ao fazer login. Verifique suas credenciais.';
@@ -98,7 +112,7 @@ export const registerWithEmail = async (
       success: true,
       user: userCredential.user,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
       error: getErrorMessage(error),
@@ -129,7 +143,7 @@ export const loginWithEmail = async (
       success: true,
       user: userCredential.user,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
       error: getErrorMessage(error),
@@ -146,7 +160,7 @@ export const signOut = async (): Promise<void> => {
 
   try {
     await firebaseSignOut(auth);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao fazer logout:', error);
     throw error;
   }

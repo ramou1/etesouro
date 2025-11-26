@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { colors, MOCK_INCOME_CATEGORIES } from '@/data/mockData';
+import { useApp } from '@/context/AppContext';
+import { saveCategory } from '@/lib/firebase/categories';
 
 interface NewIncomeCategoryModalProps {
   onClose: () => void;
 }
 
 export default function NewIncomeCategoryModal({ onClose }: NewIncomeCategoryModalProps) {
+  const { user } = useApp();
   const [title, setCategoryTitle] = useState('');
   const [color, setColor] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,20 +26,34 @@ export default function NewIncomeCategoryModal({ onClose }: NewIncomeCategoryMod
       return;
     }
 
-    try {
-      // Aqui você implementaria a lógica para criar a categoria
-      const data = {
-        id: String(Date.now()), // Gera um ID único
-        title: title,
-        color: color || '#6B7280', // Cor padrão se nenhuma for selecionada
-        type: "income"
-      };
+    if (!user?.id) {
+      alert('Usuário não autenticado');
+      setIsLoading(false);
+      return;
+    }
 
-      console.log('Nova categoria criada:', data);
-      MOCK_INCOME_CATEGORIES.push(data);
-      onClose();
-    } catch {
-      alert('Erro ao criar a categoria');
+    try {
+      const selectedColor = color || '#6B7280'; // Cor padrão se nenhuma for selecionada
+      
+      // Salvar no Firestore
+      const firestoreResult = await saveCategory(title, selectedColor, 'income', user.id);
+      
+      if (firestoreResult.success) {
+        // Também salvar nos mockados para compatibilidade
+        const data = {
+          id: firestoreResult.categoryId || String(Date.now()),
+          title: title,
+          color: selectedColor,
+          type: "income" as const
+        };
+        MOCK_INCOME_CATEGORIES.push(data);
+        onClose();
+      } else {
+        alert(firestoreResult.error || 'Erro ao criar a categoria');
+      }
+    } catch (err) {
+      console.error('Erro ao criar categoria:', err);
+      alert('Erro ao criar a categoria. Tente novamente.');
     } finally {
       setIsLoading(false);
     }

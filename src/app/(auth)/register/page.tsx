@@ -44,8 +44,8 @@ export default function RegisterPage() {
       } else {
         setError(result.error || 'Erro ao criar conta. Verifique se o email já não está em uso.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar conta');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
     } finally {
       setIsLoading(false);
     }

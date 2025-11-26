@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -7,6 +9,8 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  // Resolver problema de múltiplos lockfiles
+  outputFileTracingRoot: path.join(__dirname),
 }
 
 module.exports = nextConfig

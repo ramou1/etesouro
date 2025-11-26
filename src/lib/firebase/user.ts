@@ -1,15 +1,14 @@
 // Serviço para gerenciar dados do usuário no Firestore
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from './config';
-import { User } from '@/types';
 
 export interface UserData {
   id: string;
   name: string;
   email: string;
   avatar?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: Timestamp | null;
+  updatedAt?: Timestamp | null;
 }
 
 // Criar ou atualizar dados do usuário no Firestore
@@ -48,11 +47,12 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
     }
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao salvar dados do usuário:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar dados do usuário';
     return {
       success: false,
-      error: error.message || 'Erro ao salvar dados do usuário',
+      error: errorMessage,
     };
   }
 };
@@ -89,11 +89,12 @@ export const getUserData = async (userId: string): Promise<{ success: boolean; d
         error: 'Usuário não encontrado no banco de dados',
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar dados do usuário:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar dados do usuário';
     return {
       success: false,
-      error: error.message || 'Erro ao buscar dados do usuário',
+      error: errorMessage,
     };
   }
 };
@@ -115,11 +116,12 @@ export const updateUserAvatar = async (userId: string, avatarUrl: string): Promi
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao atualizar avatar:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar avatar';
     return {
       success: false,
-      error: error.message || 'Erro ao atualizar avatar',
+      error: errorMessage,
     };
   }
 };
@@ -141,11 +143,12 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao atualizar nome:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar nome';
     return {
       success: false,
-      error: error.message || 'Erro ao atualizar nome',
+      error: errorMessage,
     };
   }
 };

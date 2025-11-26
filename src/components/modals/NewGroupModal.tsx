@@ -5,12 +5,15 @@ import { X, Search, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { MOCK_GROUPS, MOCK_MEMBERS } from '@/data/mockData';
 import { GroupMember } from '@/types';
+import { useApp } from '@/context/AppContext';
+import { saveGroup } from '@/lib/firebase/groups';
 
 interface NewGroupModalProps {
   onClose: () => void;
 }
 
 export default function NewGroupModal({ onClose }: NewGroupModalProps) {
+  const { user } = useApp();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isTemporary, setIsTemporary] = useState(false);
@@ -92,23 +95,49 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       return;
     }
 
+    if (!user?.id) {
+      alert('Usuário não autenticado');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Aqui você implementaria a lógica para criar o grupo
-      const data = {
-        id: '',
+      // Adicionar o usuário atual como admin do grupo
+      const currentUserAsMember: GroupMember = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        isAdmin: true,
+        contributesIncome: true,
+      };
+
+      const allMembers = [currentUserAsMember, ...selectedMembers];
+
+      const groupData = {
         title: title,
         description: description,
         isTemporary: isTemporary,
-        members: selectedMembers
+        members: allMembers
       };
 
-      // console.log(data);
-      MOCK_GROUPS.push(data);
+      // Salvar no Firestore
+      const firestoreResult = await saveGroup(groupData, user.id);
       
-      onClose();
-    } catch {
-      // Removemos o 'error' não utilizado
-      // alert('Erro ao criar grupo');
+      if (firestoreResult.success && firestoreResult.groupId) {
+        // Também salvar nos mockados para compatibilidade
+        const mockGroup = {
+          id: firestoreResult.groupId,
+          ...groupData
+        };
+        MOCK_GROUPS.push(mockGroup);
+        onClose();
+      } else {
+        alert(firestoreResult.error || 'Erro ao criar o grupo');
+      }
+    } catch (err) {
+      console.error('Erro ao criar grupo:', err);
+      alert('Erro ao criar o grupo. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
