@@ -3,22 +3,27 @@
 import { useState } from 'react';
 import { X, Search, Plus } from 'lucide-react';
 import Image from 'next/image';
-import { MOCK_GROUPS, MOCK_MEMBERS } from '@/data/mockData';
+import { MOCK_MEMBERS } from '@/data/mockData';
 import { GroupMember } from '@/types';
 import { useApp } from '@/context/AppContext';
-import { saveGroup } from '@/lib/firebase/groups';
+import { saveGroup, updateGroup } from '@/lib/firebase/groups';
+import { Group } from '@/types';
 
 interface NewGroupModalProps {
   onClose: () => void;
+  group?: Group; // Se fornecido, modo edição
 }
 
-export default function NewGroupModal({ onClose }: NewGroupModalProps) {
-  const { user } = useApp();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [isTemporary, setIsTemporary] = useState(false);
+export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
+  const { user, reloadCategoriesAndGroups } = useApp();
+  const [title, setTitle] = useState(group?.title || '');
+  const [description, setDescription] = useState(group?.description || '');
+  const [isTemporary, setIsTemporary] = useState(group?.isTemporary || false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState<GroupMember[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<GroupMember[]>(
+    group ? group.members.filter(m => m.id !== user?.id) : []
+  );
+  const isEditMode = !!group;
   const [isAddingManually, setIsAddingManually] = useState(false);
   
   // Estados para adicionar membro manualmente
@@ -112,7 +117,20 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
         contributesIncome: true,
       };
 
-      const allMembers = [currentUserAsMember, ...selectedMembers];
+      // No modo edição, preservar o usuário atual como admin se já estiver no grupo
+      let allMembers: GroupMember[];
+      if (isEditMode && group && group.members.some(m => m.id === user.id)) {
+        // Manter o usuário atual dos membros existentes e adicionar os selecionados
+        const existingUserMember = group.members.find(m => m.id === user.id);
+        const updatedUserMember: GroupMember = {
+          ...existingUserMember!,
+          isAdmin: true
+        };
+        allMembers = [updatedUserMember, ...selectedMembers];
+      } else {
+        // Modo criação: adicionar usuário atual como admin
+        allMembers = [currentUserAsMember, ...selectedMembers];
+      }
 
       const groupData = {
         title: title,
@@ -121,23 +139,25 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
         members: allMembers
       };
 
-      // Salvar no Firestore
-      const firestoreResult = await saveGroup(groupData, user.id);
+      let firestoreResult;
+      if (isEditMode && group) {
+        // Modo edição
+        firestoreResult = await updateGroup(group.id, groupData, user.id);
+      } else {
+        // Modo criação
+        firestoreResult = await saveGroup(groupData, user.id);
+      }
       
-      if (firestoreResult.success && firestoreResult.groupId) {
-        // Também salvar nos mockados para compatibilidade
-        const mockGroup = {
-          id: firestoreResult.groupId,
-          ...groupData
-        };
-        MOCK_GROUPS.push(mockGroup);
+      if (firestoreResult.success) {
+        // Recarregar grupos do Firestore
+        await reloadCategoriesAndGroups();
         onClose();
       } else {
-        alert(firestoreResult.error || 'Erro ao criar o grupo');
+        alert(firestoreResult.error || `Erro ao ${isEditMode ? 'atualizar' : 'criar'} o grupo`);
       }
     } catch (err) {
       console.error('Erro ao criar grupo:', err);
-      alert('Erro ao criar o grupo. Tente novamente.');
+      alert(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} o grupo. Tente novamente.`);
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +168,9 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800">Novo Grupo</h2>
+            <h2 className="text-xl font-bold text-gray-800">
+              {isEditMode ? 'Editar Grupo' : 'Novo Grupo'}
+            </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <X size={24} />
             </button>
@@ -166,7 +188,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-700"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-900"
               placeholder="Ex: Família, Viagem, Amigos..."
               required
             />
@@ -181,7 +203,7 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all resize-none text-gray-700"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all resize-none text-gray-900"
               placeholder="Descreva o propósito deste grupo..."
               rows={3}
             />
@@ -392,16 +414,16 @@ export default function NewGroupModal({ onClose }: NewGroupModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || !title}
-              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Criando...' : 'Criar Grupo'}
+              {isLoading ? (isEditMode ? 'Salvando...' : 'Criando...') : (isEditMode ? 'Salvar Alterações' : 'Criar Grupo')}
             </button>
           </div>
         </form>

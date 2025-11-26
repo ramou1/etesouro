@@ -3,9 +3,9 @@ import {
   collection, 
   doc, 
   setDoc, 
+  updateDoc,
+  deleteDoc,
   getDocs, 
-  query, 
-  where, 
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
@@ -18,12 +18,11 @@ export interface GroupData {
   description?: string;
   members: GroupMember[];
   isTemporary: boolean;
-  userId: string; // ID do usuário que criou o grupo
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
 }
 
-// Salvar novo grupo no Firestore
+// Salvar novo grupo no Firestore (como subcoleção do usuário)
 export const saveGroup = async (
   group: Omit<Group, 'id'>, 
   userId: string
@@ -38,7 +37,8 @@ export const saveGroup = async (
   try {
     // Gerar ID único para o grupo
     const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const groupRef = doc(db, 'groups', groupId);
+    // Salvar como subcoleção dentro do usuário: users/{userId}/groups/{groupId}
+    const groupRef = doc(db, 'users', userId, 'groups', groupId);
 
     // Atualizar o groupId em todos os membros
     const membersWithGroupId = group.members.map(member => ({
@@ -52,7 +52,6 @@ export const saveGroup = async (
       description: group.description || null,
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
-      userId: userId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -68,7 +67,7 @@ export const saveGroup = async (
   }
 };
 
-// Buscar grupos do usuário no Firestore
+// Buscar grupos do usuário no Firestore (da subcoleção do usuário)
 export const getUserGroups = async (userId: string): Promise<{ success: boolean; data?: Group[]; error?: string }> => {
   if (!db) {
     return {
@@ -78,9 +77,9 @@ export const getUserGroups = async (userId: string): Promise<{ success: boolean;
   }
 
   try {
-    const groupsRef = collection(db, 'groups');
-    const q = query(groupsRef, where('userId', '==', userId));
-    const querySnapshot = await getDocs(q);
+    // Buscar da subcoleção: users/{userId}/groups
+    const groupsRef = collection(db, 'users', userId, 'groups');
+    const querySnapshot = await getDocs(groupsRef);
     const groups: Group[] = [];
 
     querySnapshot.forEach((docSnap) => {
@@ -101,6 +100,75 @@ export const getUserGroups = async (userId: string): Promise<{ success: boolean;
   } catch (error: unknown) {
     console.error('Erro ao buscar grupos:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar grupos';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Atualizar grupo existente no Firestore
+export const updateGroup = async (
+  groupId: string,
+  group: Omit<Group, 'id'>,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    // Atualizar na subcoleção: users/{userId}/groups/{groupId}
+    const groupRef = doc(db, 'users', userId, 'groups', groupId);
+
+    // Atualizar o groupId em todos os membros
+    const membersWithGroupId = group.members.map(member => ({
+      ...member,
+      groupId: groupId
+    }));
+
+    await updateDoc(groupRef, {
+      title: group.title,
+      description: group.description || null,
+      members: membersWithGroupId,
+      isTemporary: group.isTemporary,
+      updatedAt: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao atualizar grupo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar grupo';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Deletar grupo do Firestore
+export const deleteGroup = async (
+  groupId: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const groupRef = doc(db, 'users', userId, 'groups', groupId);
+    await deleteDoc(groupRef);
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao deletar grupo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao deletar grupo';
     return {
       success: false,
       error: errorMessage,

@@ -9,23 +9,25 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Usuários: apenas o próprio usuário
+    // Usuários e suas subcoleções
     match /users/{userId} {
+      // Usuário só acessa seus próprios dados
       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Categorias: usuário só acessa as suas
-    match /categories/{categoryId} {
-      allow read, write: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || 
-         request.auth.uid == request.resource.data.userId);
-    }
-    
-    // Grupos: usuário só acessa os seus
-    match /groups/{groupId} {
-      allow read, write: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || 
-         request.auth.uid == request.resource.data.userId);
+      
+      // Categorias do usuário (subcoleção)
+      match /categories/{categoryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Grupos do usuário (subcoleção)
+      match /groups/{groupId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Transações do usuário (subcoleção)
+      match /transactions/{transactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

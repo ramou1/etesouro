@@ -1,8 +1,9 @@
 // Funções auxiliares para combinar dados mockados com dados do Firestore
-import { Category, Group } from '@/types';
-import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_GROUPS } from '@/data/mockData';
+import { Category, Group, Transaction } from '@/types';
+import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_GROUPS, getTransactionsByGroup } from '@/data/mockData';
 import { getUserCategories } from './categories';
 import { getUserGroups } from './groups';
+import { getUserTransactions } from './transactions';
 
 // Combinar categorias mockadas com categorias do Firestore
 export const getCombinedCategories = async (
@@ -65,5 +66,45 @@ export const getCombinedGroups = async (userId: string | null): Promise<Group[]>
   }
 
   return mockGroups;
+};
+
+// Combinar transações mockadas com transações do Firestore
+export const getCombinedTransactions = async (
+  userId: string | null,
+  groupId: string
+): Promise<Transaction[]> => {
+  // Sempre incluir transações mockadas do grupo
+  const mockTransactions = getTransactionsByGroup(groupId);
+  
+  // Se não houver usuário, retornar apenas mockadas
+  if (!userId) {
+    return mockTransactions;
+  }
+
+  // Buscar transações do Firestore para o grupo específico
+  const firestoreResult = await getUserTransactions(userId, groupId);
+  
+  if (firestoreResult.success && firestoreResult.data) {
+    // Combinar: mockadas + Firestore
+    const combined = [...mockTransactions];
+    
+    // Adicionar transações do Firestore que não estão nas mockadas (baseado no ID)
+    firestoreResult.data.forEach(firestoreTransaction => {
+      if (!combined.find(trans => trans.id === firestoreTransaction.id)) {
+        combined.push(firestoreTransaction);
+      }
+    });
+    
+    // Ordenar por data (mais recentes primeiro)
+    combined.sort((a, b) => {
+      const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+      const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    return combined;
+  }
+
+  return mockTransactions;
 };
 

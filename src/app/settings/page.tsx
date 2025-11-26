@@ -6,12 +6,13 @@ import Header from "@/components/ui/Header";
 import NewGroupModal from "@/components/modals/NewGroupModal";
 import NewIncomeCategoryModal from "@/components/modals/NewIncomeCategoryModal";
 import NewExpenseCategoryModal from "@/components/modals/NewExpenseCategoryModal";
+import DeleteCategoryModal from "@/components/modals/DeleteCategoryModal";
+import DeleteGroupModal from "@/components/modals/DeleteGroupModal";
 import {
-  MOCK_GROUPS,
-  MOCK_INCOME_CATEGORIES,
-  MOCK_EXPENSE_CATEGORIES,
   MOCK_BUDGET_LIMITS,
 } from "@/data/mockData";
+import { useApp } from "@/context/AppContext";
+import { Category, Group } from "@/types";
 import {
   Users,
   Plus,
@@ -30,6 +31,16 @@ export default function SettingsPage() {
     useState(false);
   const [showNewExpenseCategoryModal, setShowNewExpenseCategoryModal] =
     useState(false);
+  
+  // Estados para edição
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [editingIncomeCategory, setEditingIncomeCategory] = useState<Category | null>(null);
+  const [editingExpenseCategory, setEditingExpenseCategory] = useState<Category | null>(null);
+  
+  // Estados para exclusão
+  const [deletingGroup, setDeletingGroup] = useState<Group | null>(null);
+  const [deletingIncomeCategory, setDeletingIncomeCategory] = useState<Category | null>(null);
+  const [deletingExpenseCategory, setDeletingExpenseCategory] = useState<Category | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
@@ -95,16 +106,24 @@ export default function SettingsPage() {
 
           {/* Tab Content */}
           {activeTab === "groups" && (
-            <GroupsSection onNewGroup={() => setShowNewGroupModal(true)} />
+            <GroupsSection 
+              onNewGroup={() => setShowNewGroupModal(true)}
+              onEditGroup={(group) => setEditingGroup(group)}
+              onDeleteGroup={(group) => setDeletingGroup(group)}
+            />
           )}
           {activeTab === "income" && (
             <IncomeCategoriesSection
               onNewIncomeCategory={() => setShowNewIncomeCategoryModal(true)}
+              onEditCategory={(category) => setEditingIncomeCategory(category)}
+              onDeleteCategory={(category) => setDeletingIncomeCategory(category)}
             />
           )}
           {activeTab === "expense" && (
             <ExpenseCategoriesSection
               onNewExpenseCategory={() => setShowNewExpenseCategoryModal(true)}
+              onEditCategory={(category) => setEditingExpenseCategory(category)}
+              onDeleteCategory={(category) => setDeletingExpenseCategory(category)}
             />
           )}
           {activeTab === "limits" && <BudgetLimitsSection />}
@@ -114,22 +133,69 @@ export default function SettingsPage() {
       {/* Bottom Navigation */}
       <BottomTabs />
 
-      {/* New Group Modal */}
-      {showNewGroupModal && (
-        <NewGroupModal onClose={() => setShowNewGroupModal(false)} />
-      )}
-
-      {/* New Income Modal */}
-      {showNewIncomeCategoryModal && (
-        <NewIncomeCategoryModal
-          onClose={() => setShowNewIncomeCategoryModal(false)}
+      {/* New/Edit Group Modal */}
+      {(showNewGroupModal || editingGroup) && (
+        <NewGroupModal 
+          onClose={() => {
+            setShowNewGroupModal(false);
+            setEditingGroup(null);
+          }}
+          group={editingGroup || undefined}
         />
       )}
 
-      {/* New Expense Modal */}
-      {showNewExpenseCategoryModal && (
+      {/* New/Edit Income Modal */}
+      {(showNewIncomeCategoryModal || editingIncomeCategory) && (
+        <NewIncomeCategoryModal
+          onClose={() => {
+            setShowNewIncomeCategoryModal(false);
+            setEditingIncomeCategory(null);
+          }}
+          category={editingIncomeCategory || undefined}
+        />
+      )}
+
+      {/* New/Edit Expense Modal */}
+      {(showNewExpenseCategoryModal || editingExpenseCategory) && (
         <NewExpenseCategoryModal
-          onClose={() => setShowNewExpenseCategoryModal(false)}
+          onClose={() => {
+            setShowNewExpenseCategoryModal(false);
+            setEditingExpenseCategory(null);
+          }}
+          category={editingExpenseCategory || undefined}
+        />
+      )}
+
+      {/* Confirm Delete Group Modal */}
+      {deletingGroup && (
+        <DeleteGroupModal
+          group={deletingGroup}
+          onClose={() => setDeletingGroup(null)}
+          onConfirm={async () => {
+            setDeletingGroup(null);
+          }}
+        />
+      )}
+
+      {/* Confirm Delete Income Category Modal */}
+      {deletingIncomeCategory && (
+        <DeleteCategoryModal
+          category={deletingIncomeCategory}
+          onClose={() => setDeletingIncomeCategory(null)}
+          onConfirm={async () => {
+            setDeletingIncomeCategory(null);
+          }}
+        />
+      )}
+
+      {/* Confirm Delete Expense Category Modal */}
+      {deletingExpenseCategory && (
+        <DeleteCategoryModal
+          category={deletingExpenseCategory}
+          onClose={() => setDeletingExpenseCategory(null)}
+          onConfirm={async () => {
+            setDeletingExpenseCategory(null);
+          }}
         />
       )}
     </div>
@@ -137,7 +203,12 @@ export default function SettingsPage() {
 }
 
 // Componente para seção de Grupos
-function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
+function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: { 
+  onNewGroup: () => void; 
+  onEditGroup: (group: Group) => void;
+  onDeleteGroup: (group: Group) => void;
+}) {
+  const { groups } = useApp();
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -151,7 +222,7 @@ function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
         </button>
       </div>
 
-      {MOCK_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.id} className="bg-white rounded-2xl p-4">
           <div className="flex justify-between items-start mb-3">
             <div>
@@ -166,10 +237,16 @@ function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
               </p>
             </div>
             <div className="flex gap-2">
-              <button className="text-gray-400 hover:text-gray-600">
+              <button 
+                onClick={() => onEditGroup(group)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <Edit size={20} />
               </button>
-              <button className="text-gray-400 hover:text-red-600">
+              <button 
+                onClick={() => onDeleteGroup(group)}
+                className="text-gray-400 hover:text-red-600"
+              >
                 <Trash2 size={20} />
               </button>
             </div>
@@ -224,7 +301,12 @@ function GroupsSection({ onNewGroup }: { onNewGroup: () => void }) {
 }
 
 // Componente para seção de Categorias de Entrada
-function IncomeCategoriesSection({onNewIncomeCategory}: {onNewIncomeCategory: () => void;}) {
+function IncomeCategoriesSection({onNewIncomeCategory, onEditCategory, onDeleteCategory}: {
+  onNewIncomeCategory: () => void; 
+  onEditCategory: (category: Category) => void;
+  onDeleteCategory: (category: Category) => void;
+}) {
+  const { incomeCategories } = useApp();
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -241,7 +323,7 @@ function IncomeCategoriesSection({onNewIncomeCategory}: {onNewIncomeCategory: ()
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {MOCK_INCOME_CATEGORIES.map((category) => (
+        {incomeCategories.map((category) => (
           <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
             <div className="flex justify-between items-start">
               <span
@@ -250,10 +332,16 @@ function IncomeCategoriesSection({onNewIncomeCategory}: {onNewIncomeCategory: ()
                 {category.title}
               </span>
               <div className="flex gap-1">
-                <button className="text-gray-400 hover:text-gray-600">
+                <button 
+                  onClick={() => onEditCategory(category)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <Edit size={16} />
                 </button>
-                <button className="text-gray-400 hover:text-red-600">
+                <button 
+                  onClick={() => onDeleteCategory(category)}
+                  className="text-gray-400 hover:text-red-600"
+                >
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -266,7 +354,12 @@ function IncomeCategoriesSection({onNewIncomeCategory}: {onNewIncomeCategory: ()
 }
 
 // Componente para seção de Categorias de Saída
-function ExpenseCategoriesSection({onNewExpenseCategory}: {onNewExpenseCategory: () => void;}) {
+function ExpenseCategoriesSection({onNewExpenseCategory, onEditCategory, onDeleteCategory}: {
+  onNewExpenseCategory: () => void; 
+  onEditCategory: (category: Category) => void;
+  onDeleteCategory: (category: Category) => void;
+}) {
+  const { expenseCategories } = useApp();
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -283,7 +376,7 @@ function ExpenseCategoriesSection({onNewExpenseCategory}: {onNewExpenseCategory:
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {MOCK_EXPENSE_CATEGORIES.map((category) => (
+        {expenseCategories.map((category) => (
           <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
             <div className="flex justify-between items-start">
                 <span
@@ -292,10 +385,16 @@ function ExpenseCategoriesSection({onNewExpenseCategory}: {onNewExpenseCategory:
                 {category.title}
               </span>
               <div className="flex gap-1">
-                <button className="text-gray-400 hover:text-gray-600">
+                <button 
+                  onClick={() => onEditCategory(category)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <Edit size={16} />
                 </button>
-                <button className="text-gray-400 hover:text-red-600">
+                <button 
+                  onClick={() => onDeleteCategory(category)}
+                  className="text-gray-400 hover:text-red-600"
+                >
                   <Trash2 size={16} />
                 </button>
               </div>

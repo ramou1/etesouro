@@ -4,7 +4,6 @@
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { X, Upload, FileText, Image as ImageIcon } from 'lucide-react';
-import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES, MOCK_MEMBERS } from '@/data/mockData';
 
 interface TransactionModalProps {
   type: 'income' | 'expense';
@@ -20,11 +19,11 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { addTransaction, user, activeGroup } = useApp();
+  const { addTransaction, user, activeGroup, incomeCategories, expenseCategories } = useApp();
 
   const members = activeGroup.members;
   // Obter categorias baseadas no tipo de transação
-  const categories = type === 'income' ? MOCK_INCOME_CATEGORIES : MOCK_EXPENSE_CATEGORIES;
+  const categories = type === 'income' ? incomeCategories : expenseCategories;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +45,8 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
         receiptUrl = URL.createObjectURL(receiptFile);
       }
 
-      // Buscar o membro responsável baseado no ID
-      const responsibleMember = MOCK_MEMBERS.find(member => member.id === selectedResponsibleId);
+      // Buscar o membro responsável baseado no ID nos membros do grupo ativo
+      const responsibleMember = members.find(member => member.id === selectedResponsibleId);
 
       if (!responsibleMember) {
         alert('Por favor, selecione um responsável válido');
@@ -55,7 +54,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
         return;
       }
 
-      addTransaction({
+      await addTransaction({
         userId: user?.id || '1',
         date: new Date(),
         type,
@@ -287,14 +286,14 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || !amount}
-              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Adicionando...' : 'Adicionar'}
             </button>

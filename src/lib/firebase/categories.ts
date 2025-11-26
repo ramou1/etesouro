@@ -3,6 +3,8 @@ import {
   collection, 
   doc, 
   setDoc, 
+  updateDoc,
+  deleteDoc,
   getDocs, 
   query, 
   where, 
@@ -17,12 +19,11 @@ export interface CategoryData {
   title: string;
   color: string;
   type: 'income' | 'expense';
-  userId: string;
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
 }
 
-// Salvar nova categoria no Firestore
+// Salvar nova categoria no Firestore (como subcoleção do usuário)
 export const saveCategory = async (
   title: string, 
   color: string, 
@@ -38,15 +39,15 @@ export const saveCategory = async (
 
   try {
     // Gerar ID único para a categoria
-    const categoryId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const categoryRef = doc(db, 'categories', categoryId);
+    const categoryId = `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Salvar como subcoleção dentro do usuário: users/{userId}/categories/{categoryId}
+    const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
 
     await setDoc(categoryRef, {
       id: categoryId,
       title: title,
       color: color,
       type: type,
-      userId: userId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -62,7 +63,7 @@ export const saveCategory = async (
   }
 };
 
-// Buscar categorias do usuário no Firestore
+// Buscar categorias do usuário no Firestore (da subcoleção do usuário)
 export const getUserCategories = async (userId: string, type?: 'income' | 'expense'): Promise<{ success: boolean; data?: Category[]; error?: string }> => {
   if (!db) {
     return {
@@ -72,11 +73,12 @@ export const getUserCategories = async (userId: string, type?: 'income' | 'expen
   }
 
   try {
-    const categoriesRef = collection(db, 'categories');
-    let q = query(categoriesRef, where('userId', '==', userId));
+    // Buscar da subcoleção: users/{userId}/categories
+    const categoriesRef = collection(db, 'users', userId, 'categories');
+    let q = query(categoriesRef);
     
     if (type) {
-      q = query(categoriesRef, where('userId', '==', userId), where('type', '==', type));
+      q = query(categoriesRef, where('type', '==', type));
     }
 
     const querySnapshot = await getDocs(q);
@@ -99,6 +101,68 @@ export const getUserCategories = async (userId: string, type?: 'income' | 'expen
   } catch (error: unknown) {
     console.error('Erro ao buscar categorias:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar categorias';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Atualizar categoria existente no Firestore
+export const updateCategory = async (
+  categoryId: string,
+  title: string,
+  color: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    // Atualizar na subcoleção: users/{userId}/categories/{categoryId}
+    const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
+
+    await updateDoc(categoryRef, {
+      title: title,
+      color: color,
+      updatedAt: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao atualizar categoria:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar categoria';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Deletar categoria do Firestore
+export const deleteCategory = async (
+  categoryId: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
+    await deleteDoc(categoryRef);
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao deletar categoria:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao deletar categoria';
     return {
       success: false,
       error: errorMessage,

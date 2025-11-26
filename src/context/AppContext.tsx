@@ -1,15 +1,19 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, FinancialData, Transaction, Group } from '@/types';
+import { User, FinancialData, Transaction, Group, Category } from '@/types';
 import { 
   MOCK_GROUPS,
+  MOCK_INCOME_CATEGORIES,
+  MOCK_EXPENSE_CATEGORIES,
   getFinancialDataByGroup
 } from '@/data/mockData';
 import { auth } from '@/lib/firebase/config';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
 import { getUserData, saveUserData } from '@/lib/firebase/user';
+import { getCombinedCategories, getCombinedGroups, getCombinedTransactions } from '@/lib/firebase/dataHelpers';
+import { saveTransaction } from '@/lib/firebase/transactions';
 
 interface AppContextType {
   user: User | null;
@@ -17,7 +21,10 @@ interface AppContextType {
   activeGroup: Group;
   setActiveGroup: (group: Group) => void;
   groups: Group[];
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  incomeCategories: Category[];
+  expenseCategories: Category[];
+  reloadCategoriesAndGroups: () => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
   removeTransaction: (id: string) => void;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -34,6 +41,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeGroup, setActiveGroup] = useState<Group>(MOCK_GROUPS[0]);
   const [financialData, setFinancialData] = useState<FinancialData>(getFinancialDataByGroup(MOCK_GROUPS[0].id));
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [groups, setGroups] = useState<Group[]>(MOCK_GROUPS);
+  const [incomeCategories, setIncomeCategories] = useState<Category[]>(MOCK_INCOME_CATEGORIES);
+  const [expenseCategories, setExpenseCategories] = useState<Category[]>(MOCK_EXPENSE_CATEGORIES);
 
   // Monitorar estado de autenticação do Firebase
   useEffect(() => {
@@ -90,17 +100,100 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(null);
         localStorage.removeItem('user');
+        // Limpar dados quando não há usuário
+        setGroups(MOCK_GROUPS);
+        setIncomeCategories(MOCK_INCOME_CATEGORIES);
+        setExpenseCategories(MOCK_EXPENSE_CATEGORIES);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Atualizar financialData quando o grupo ativo mudar
+  // Função para carregar categorias e grupos do Firestore
+  const loadCategoriesAndGroups = React.useCallback(async () => {
+    if (!user?.id) {
+      // Se não há usuário, usar apenas dados mockados
+      setGroups(MOCK_GROUPS);
+      setIncomeCategories(MOCK_INCOME_CATEGORIES);
+      setExpenseCategories(MOCK_EXPENSE_CATEGORIES);
+      return;
+    }
+
+    try {
+      // Carregar e combinar categorias de receitas
+      const combinedIncomeCategories = await getCombinedCategories(user.id, 'income');
+      setIncomeCategories(combinedIncomeCategories);
+
+      // Carregar e combinar categorias de despesas
+      const combinedExpenseCategories = await getCombinedCategories(user.id, 'expense');
+      setExpenseCategories(combinedExpenseCategories);
+
+      // Carregar e combinar grupos
+      const combinedGroups = await getCombinedGroups(user.id);
+      setGroups(combinedGroups);
+
+      // Se o grupo ativo não estiver mais na lista, usar o primeiro
+      setActiveGroup(prevActiveGroup => {
+        if (combinedGroups.length > 0 && !combinedGroups.find(g => g.id === prevActiveGroup.id)) {
+          return combinedGroups[0];
+        }
+        return prevActiveGroup;
+      });
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+      // Em caso de erro, usar dados mockados
+      setGroups(MOCK_GROUPS);
+      setIncomeCategories(MOCK_INCOME_CATEGORIES);
+      setExpenseCategories(MOCK_EXPENSE_CATEGORIES);
+    }
+  }, [user?.id]);
+
+  // Carregar categorias e grupos do Firestore quando o usuário mudar
   useEffect(() => {
-    const newFinancialData = getFinancialDataByGroup(activeGroup.id);
-    setFinancialData(newFinancialData);
-  }, [activeGroup]);
+    loadCategoriesAndGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Função para recarregar categorias e grupos (útil após criar novos)
+  const reloadCategoriesAndGroups = async () => {
+    await loadCategoriesAndGroups();
+  };
+
+  // Carregar transações do Firestore quando o grupo ativo ou usuário mudar
+  useEffect(() => {
+    const loadTransactions = async () => {
+      if (!activeGroup?.id) return;
+
+      try {
+        // Combinar transações mockadas com do Firestore
+        const combinedTransactions = await getCombinedTransactions(user?.id || null, activeGroup.id);
+        
+        // Calcular totais
+        const totalIncome = combinedTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
+        
+        const totalExpenses = combinedTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        setFinancialData({
+          transactions: combinedTransactions,
+          totalIncome,
+          totalExpenses,
+          balance: totalIncome - totalExpenses,
+        });
+      } catch (error) {
+        console.error('Erro ao carregar transações:', error);
+        // Em caso de erro, usar dados mockados
+        const newFinancialData = getFinancialDataByGroup(activeGroup.id);
+        setFinancialData(newFinancialData);
+      }
+    };
+
+    loadTransactions();
+  }, [activeGroup.id, user?.id]);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -154,11 +247,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
+  const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+    const transactionWithGroupId: Omit<Transaction, 'id'> = {
       ...transaction,
-      id: String(Date.now()),
       groupId: activeGroup.id,
+    };
+
+    // Se houver usuário, salvar no Firestore
+    if (user?.id) {
+      try {
+        const firestoreResult = await saveTransaction(transactionWithGroupId, user.id);
+        
+        if (!firestoreResult.success) {
+          console.error('Erro ao salvar transação no Firestore:', firestoreResult.error);
+          // Continuar mesmo com erro, para não bloquear a UI
+        }
+      } catch (error) {
+        console.error('Erro ao salvar transação:', error);
+        // Continuar mesmo com erro
+      }
+    }
+
+    // Adicionar localmente (mockado ou do Firestore)
+    const newTransaction: Transaction = {
+      ...transactionWithGroupId,
+      id: String(Date.now()),
     };
 
     setFinancialData(prev => {
@@ -223,7 +336,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         financialData,
         activeGroup,
         setActiveGroup,
-        groups: MOCK_GROUPS,
+        groups,
+        incomeCategories,
+        expenseCategories,
+        reloadCategoriesAndGroups,
         login, 
         logout,
         register,

@@ -2,19 +2,22 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { colors, MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
+import { colors } from '@/data/mockData';
 import { useApp } from '@/context/AppContext';
-import { saveCategory } from '@/lib/firebase/categories';
+import { saveCategory, updateCategory } from '@/lib/firebase/categories';
+import { Category } from '@/types';
 
 interface NewExpenseCategoryModalProps {
   onClose: () => void;
+  category?: Category; // Se fornecido, modo edição
 }
 
-export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryModalProps) {
-  const { user } = useApp();
-  const [title, setCategoryTitle] = useState('');
-  const [color, setColor] = useState('');
+export default function NewExpenseCategoryModal({ onClose, category }: NewExpenseCategoryModalProps) {
+  const { user, reloadCategoriesAndGroups } = useApp();
+  const [title, setCategoryTitle] = useState(category?.title || '');
+  const [color, setColor] = useState(category?.color || '');
   const [isLoading, setIsLoading] = useState(false);
+  const isEditMode = !!category;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,21 +38,21 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
     try {
       const selectedColor = color || '#6B7280'; // Cor padrão se nenhuma for selecionada
       
-      // Salvar no Firestore
-      const firestoreResult = await saveCategory(title, selectedColor, 'expense', user.id);
+      let firestoreResult;
+      if (isEditMode && category) {
+        // Modo edição
+        firestoreResult = await updateCategory(category.id, title, selectedColor, user.id);
+      } else {
+        // Modo criação
+        firestoreResult = await saveCategory(title, selectedColor, 'expense', user.id);
+      }
       
       if (firestoreResult.success) {
-        // Também salvar nos mockados para compatibilidade
-        const data = {
-          id: firestoreResult.categoryId || String(Date.now()),
-          title: title,
-          color: selectedColor,
-          type: "expense" as const
-        };
-        MOCK_EXPENSE_CATEGORIES.push(data);
+        // Recarregar categorias do Firestore
+        await reloadCategoriesAndGroups();
         onClose();
       } else {
-        alert(firestoreResult.error || 'Erro ao criar a categoria');
+        alert(firestoreResult.error || `Erro ao ${isEditMode ? 'atualizar' : 'criar'} a categoria`);
       }
     } catch (err) {
       console.error('Erro ao criar categoria:', err);
@@ -68,7 +71,9 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800">Nova Categoria de Saída</h2>
+            <h2 className="text-xl font-bold text-gray-800">
+              {isEditMode ? 'Editar Categoria de Saída' : 'Nova Categoria de Saída'}
+            </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <X size={24} />
             </button>
@@ -126,16 +131,16 @@ export default function NewExpenseCategoryModal({ onClose }: NewExpenseCategoryM
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || !title}
-              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Criando...' : 'Criar Categoria'}
+              {isLoading ? (isEditMode ? 'Salvando...' : 'Criando...') : (isEditMode ? 'Salvar Alterações' : 'Criar Categoria')}
             </button>
           </div>
         </form>
