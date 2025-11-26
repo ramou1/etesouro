@@ -7,6 +7,10 @@ import {
   MOCK_GROUPS,
   getFinancialDataByGroup
 } from '@/data/mockData';
+import { auth } from '@/lib/firebase/config';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
+import { getUserData, saveUserData } from '@/lib/firebase/user';
 
 interface AppContextType {
   user: User | null;
@@ -16,9 +20,9 @@ interface AppContextType {
   groups: Group[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   removeTransaction: (id: string) => void;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   selectedParticipants: string[];
   toggleParticipant: (participantId: string) => void;
   getFilteredFinancialData: () => FinancialData;
@@ -32,11 +36,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [financialData, setFinancialData] = useState<FinancialData>(getFinancialDataByGroup(MOCK_GROUPS[0].id));
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
+  // Monitorar estado de autenticação do Firebase
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (!auth) {
+      // Se Firebase não estiver configurado, tenta carregar do localStorage (modo mock)
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (error) {
+          console.error('Erro ao carregar usuário do localStorage:', error);
+        }
+      }
+      return;
     }
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        // Tentar buscar dados do usuário no Firestore
+        const userDataResult = await getUserData(firebaseUser.uid);
+        
+        let appUser: User;
+        
+        if (userDataResult.success && userDataResult.data) {
+          // Usar dados do Firestore se existirem
+          appUser = {
+            id: userDataResult.data.id,
+            name: userDataResult.data.name,
+            email: userDataResult.data.email,
+            avatar: userDataResult.data.avatar,
+            isAuthenticated: true,
+          };
+        } else {
+          // Se não houver dados no Firestore, criar com dados do Auth
+          appUser = {
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || 'Usuário',
+            email: firebaseUser.email || '',
+            avatar: firebaseUser.photoURL || undefined,
+            isAuthenticated: true,
+          };
+          
+          // Salvar dados no Firestore (para migrar usuários antigos)
+          await saveUserData({
+            id: firebaseUser.uid,
+            name: appUser.name,
+            email: appUser.email,
+            avatar: appUser.avatar,
+          });
+        }
+        
+        setUser(appUser);
+        localStorage.setItem('user', JSON.stringify(appUser));
+      } else {
+        setUser(null);
+        localStorage.removeItem('user');
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Atualizar financialData quando o grupo ativo mudar
@@ -45,35 +103,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFinancialData(newFinancialData);
   }, [activeGroup]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simula uma chamada assíncrona
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (email === MOCK_USER.email) {
-          setUser(MOCK_USER);
-          localStorage.setItem('user', JSON.stringify(MOCK_USER));
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 500);
-    });
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await loginWithEmail(email, password);
+      // O estado do usuário será atualizado automaticamente pelo onAuthStateChanged
+      return { success: result.success, error: result.error };
+    } catch (error: any) {
+      console.error('Erro ao fazer login:', error);
+      return { success: false, error: error.message || 'Erro ao fazer login' };
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await firebaseSignOut();
+      // O estado do usuário será atualizado automaticamente pelo onAuthStateChanged
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Implementação mock para registro
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Aqui você poderia implementar a lógica real de registro
-        console.log('Tentativa de registro:', { name, email });
-        resolve(false); // Sempre retorna false por enquanto
-      }, 500);
-    });
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await registerWithEmail(name, email, password);
+      // O estado do usuário será atualizado automaticamente pelo onAuthStateChanged
+      return { success: result.success, error: result.error };
+    } catch (error: any) {
+      console.error('Erro ao registrar:', error);
+      return { success: false, error: error.message || 'Erro ao criar conta' };
+    }
   };
 
   const removeTransaction = (id: string) => {

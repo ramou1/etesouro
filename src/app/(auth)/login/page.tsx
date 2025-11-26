@@ -23,14 +23,21 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+      if (result.success) {
         router.push('/dashboard');
       } else {
-        setError('Email ou senha inválidos');
+        // A mensagem de erro já vem tratada e em português do serviço de autenticação
+        setError(result.error || 'Email ou senha incorretos');
       }
-    } catch {
-      setError('Erro ao fazer login');
+    } catch (err: any) {
+      // Tratar erros inesperados
+      const errorMessage = err?.message || 'Erro ao fazer login';
+      if (errorMessage.includes('invalid-credential') || errorMessage.includes('user-not-found')) {
+        setError('Email ou senha incorretos');
+      } else {
+        setError('Erro ao fazer login. Tente novamente.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -38,14 +38,14 @@ export default function RegisterPage() {
     }
 
     try {
-      const success = await register(name, email, password);
-      if (success) {
+      const result = await register(name, email, password);
+      if (result.success) {
         router.push('/dashboard');
       } else {
-        setError('Erro ao criar conta');
+        setError(result.error || 'Erro ao criar conta. Verifique se o email já não está em uso.');
       }
-    } catch (err) {
-      setError('Erro ao criar conta' + err);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao criar conta');
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +108,7 @@ export default function RegisterPage() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all placeholder-gray-500"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all placeholder-gray-500 text-gray-700"
                 placeholder="Mínimo 6 caracteres"
                 required
               />
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all placeholder-gray-500"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all placeholder-gray-500 text-gray-700"
                 placeholder="Confirme sua senha"
                 required
               />
