@@ -152,7 +152,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
               id="amount"
               value={amount}
               onChange={(e) => setAmount(formatAmount(e.target.value))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all placeholder-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-900"
               placeholder="0,00"
               required
             />
@@ -175,7 +175,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-900">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -211,7 +211,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
                   onClick={() => setSelectedCategory(category.title)}
                   className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
                     selectedCategory === category.title
-                      ? `${category.color} border-current`
+                      ? `border-yellow-500 text-yellow-500`
                       : 'border-gray-200 text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -277,7 +277,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all placeholder-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-900"
               placeholder="Ex: Salário, Alimentação, etc."
             />
           </div>
