@@ -92,20 +92,19 @@ export const MOCK_GROUPS: Group[] = [
 export const MOCK_INCOME_CATEGORIES: Category[] = [
   { id: '1', title: 'Salário', color: '#DBFCE7', type: 'income' }, 
   { id: '2', title: 'Freelance', color: '#DBEAFE', type: 'income' }, 
-  // { id: '3', title: 'Investimentos', color: '#F3E8FF', type: 'income' }, 
-  // { id: '4', title: 'Vendas', color: '#FFE4E1', type: 'income' }, 
-  // { id: '5', title: 'Bônus', color: '#FEF9C2', type: 'income' }, 
-  { id: '6', title: 'Outros', color: '#f3f4f6', type: 'income' } 
+  { id: '3', title: 'Investimentos', color: '#F3E8FF', type: 'income' }, 
+  { id: '4', title: 'Vendas', color: '#FFE4E1', type: 'income' }, 
+  { id: '5', title: 'Bônus', color: '#FEF9C2', type: 'income' }
 ];
 
 export const MOCK_EXPENSE_CATEGORIES: Category[] = [
   { id: '1', title: 'Alimentação', color: '#FFE4E1', type: 'expense' },
   { id: '2', title: 'Transporte', color: '#DBEAFE', type: 'expense' },
-  // { id: '3', title: 'Saúde', color: '#DBFCE7', type: 'expense' },
-  // { id: '4', title: 'Lazer', color: '#F3E8FF', type: 'expense' },
-  // { id: '5', title: 'Educação', color: '#FEF9C2', type: 'expense' },
-  // { id: '6', title: 'Moradia', color: '#D4F0F0', type: 'expense' },
-  // { id: '7', title: 'Roupas', color: '#FFD6E7', type: 'expense' }
+  { id: '3', title: 'Saúde', color: '#DBFCE7', type: 'expense' },
+  { id: '4', title: 'Lazer', color: '#F3E8FF', type: 'expense' },
+  { id: '5', title: 'Educação', color: '#FEF9C2', type: 'expense' },
+  { id: '6', title: 'Moradia', color: '#D4F0F0', type: 'expense' },
+  { id: '7', title: 'Roupas', color: '#FFD6E7', type: 'expense' }
 ];
 
 export interface PaymentMethod {

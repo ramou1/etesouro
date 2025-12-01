@@ -129,20 +129,24 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800">
-            {type === 'income' ? 'Adicionar Receita' : 'Adicionar Despesa'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X size={24} />
-          </button>
-        </div>
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          {/* Cabeçalho Fixo */}
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 flex-shrink-0">
+            <h2 className="text-xl font-bold text-gray-800">
+              {type === 'income' ? 'Adicionar Receita' : 'Adicionar Despesa'}
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Conteúdo com Scroll */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
               Valor (R$)
@@ -181,22 +185,20 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
                 </svg>
               </div>
             </div>
-            
-            {/* Mostrar o membro selecionado com avatar (opcional) */}
-            {/* {selectedResponsible && (
-              <div className="mt-3 flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                <Image 
-                  src={members.find(m => m.id === selectedResponsible)?.avatar || ""}
-                  alt={members.find(m => m.id === selectedResponsible)?.name || ""}
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 rounded-full object-cover"
-                />
-                <span className="text-sm text-gray-700">
-                  {members.find(m => m.id === selectedResponsible)?.name}
-                </span>
-              </div>
-            )} */}
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              Descrição (opcional)
+            </label>
+            <input
+              type="text"
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-900"
+              placeholder="Ex: Salário, Alimentação, etc."
+            />
           </div>
 
           <div>
@@ -267,22 +269,10 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
               </div>
             )}
           </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-              Descrição (opcional)
-            </label>
-            <input
-              type="text"
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none transition-all text-gray-900"
-              placeholder="Ex: Salário, Alimentação, etc."
-            />
           </div>
 
-          <div className="flex space-x-3 pt-4">
+          {/* Rodapé Fixo */}
+          <div className="flex space-x-3 p-6 pt-4 border-t border-gray-200 flex-shrink-0">
             <button
               type="button"
               onClick={onClose}

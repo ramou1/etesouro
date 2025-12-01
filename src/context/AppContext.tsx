@@ -142,10 +142,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
-      // Em caso de erro, usar dados mockados
-      setGroups(MOCK_GROUPS);
-      setIncomeCategories(MOCK_INCOME_CATEGORIES);
-      setExpenseCategories(MOCK_EXPENSE_CATEGORIES);
+      // Em caso de erro, retornar arrays vazios (apenas dados do banco)
+      setGroups([]);
+      setIncomeCategories([]);
+      setExpenseCategories([]);
     }
   }, [user?.id]);
 
@@ -166,29 +166,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!activeGroup?.id) return;
 
       try {
-        // Combinar transações mockadas com do Firestore
-        const combinedTransactions = await getCombinedTransactions(user?.id || null, activeGroup.id);
+        // Buscar apenas transações do Firestore
+        const transactions = await getCombinedTransactions(user?.id || null, activeGroup.id);
         
         // Calcular totais
-        const totalIncome = combinedTransactions
+        const totalIncome = transactions
           .filter(t => t.type === 'income')
           .reduce((sum, t) => sum + t.amount, 0);
         
-        const totalExpenses = combinedTransactions
+        const totalExpenses = transactions
           .filter(t => t.type === 'expense')
           .reduce((sum, t) => sum + t.amount, 0);
 
         setFinancialData({
-          transactions: combinedTransactions,
+          transactions,
           totalIncome,
           totalExpenses,
           balance: totalIncome - totalExpenses,
         });
       } catch (error) {
         console.error('Erro ao carregar transações:', error);
-        // Em caso de erro, usar dados mockados
-        const newFinancialData = getFinancialDataByGroup(activeGroup.id);
-        setFinancialData(newFinancialData);
+        // Em caso de erro, retornar dados vazios (apenas dados do banco)
+        setFinancialData({
+          transactions: [],
+          totalIncome: 0,
+          totalExpenses: 0,
+          balance: 0,
+        });
       }
     };
 
@@ -309,8 +313,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     // Filtra as transações removendo as dos participantes desabilitados
+    // Usa o ID do responsável (responsible.id) ao invés de userId
     const filteredTransactions = financialData.transactions.filter(
-      transaction => !selectedParticipants.includes(transaction.userId)
+      transaction => !selectedParticipants.includes(transaction.responsible.id)
     );
 
     const totalIncome = filteredTransactions
