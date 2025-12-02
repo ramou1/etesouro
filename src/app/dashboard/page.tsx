@@ -4,10 +4,11 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Minus, ChevronDown } from 'lucide-react';
+import { Plus, Minus, ChevronDown, Users, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import TransactionModal from '@/components/modals/TransactionModal';
 import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
+import NewGroupModal from '@/components/modals/NewGroupModal';
 import Header from '@/components/ui/Header';
 import Participants from '@/components/Participants';
 import BottomTabs from '@/components/ui/BottomTabs';
@@ -22,6 +23,10 @@ export default function DashboardPage() {
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('M');
   const [showGroupSelector, setShowGroupSelector] = useState(false);
+  const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+  
+  // Verificar se há grupos
+  const hasGroups = groups && groups.length > 0;
 
   // Usar os dados filtrados
   const filteredFinancialData = getFilteredFinancialData();
@@ -69,113 +74,148 @@ export default function DashboardPage() {
 
       {/* Main Content - Ocupa toda a altura restante */}
       <div className="flex-1 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 p-4 pb-32">
-
-        {/* Botões de Período */}
-        <div className="flex justify-center items-center gap-2 mb-4">
-          {periods.map((period) => (
-            <button
-              key={period.value}
-              onClick={() => setSelectedPeriod(period.value)}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-all ${
-                selectedPeriod === period.value
-                  ? 'bg-black text-white scale-110'
-                  : 'bg-black text-yellow-600 opacity-70 hover:opacity-100'
-              }`}
-            >
-              {period.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Nome do Mês Atual */}
-        <div className="flex justify-center items-center mb-6">
-          <h3 className="text-lg font-bold text-black">{getCurrentDateRange()}</h3>
-        </div>
-
-        {/* Nome do Grupo Ativo com Seletor */}
-        <div className="flex justify-center items-center mb-4">
-          <div className="relative">
-            <button
-              onClick={() => setShowGroupSelector(!showGroupSelector)}
-              className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 hover:bg-white/30 transition-all"
-            >
-              <span className="text-black font-medium text-sm">{activeGroup.title}</span>
-              <ChevronDown size={16} className="text-black" />
-            </button>
-
-            {/* Dropdown de Grupos */}
-            {showGroupSelector && (
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-30">
-                <div className="py-1">
-                  {groups.map((group) => (
-                    <button
-                      key={group.id}
-                      onClick={() => handleGroupSelect(group)}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                        group.id === activeGroup.id
-                          ? 'bg-yellow-50 text-yellow-700 font-medium'
-                          : 'text-gray-700'
-                      }`}
-                    >
-                      {group.title}
-                    </button>
-                  ))}
-                </div>
+        {!hasGroups ? (
+          // Mensagem quando não há grupos
+          <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center px-4">
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full">
+              <Users size={64} className="mx-auto mb-4 text-black opacity-80" />
+              <h2 className="text-2xl font-bold text-black mb-3">
+                Comece criando seu primeiro grupo
+              </h2>
+              <p className="text-black/80 mb-6 text-sm">
+                Para começar a gerenciar suas finanças, você precisa criar um grupo. 
+                Um grupo pode ser sua família, amigos, ou qualquer grupo de pessoas que compartilham despesas.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setShowNewGroupModal(true)}
+                  className="bg-black text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus size={20} />
+                  Criar Primeiro Grupo
+                </button>
+                <button
+                  onClick={() => router.push('/settings')}
+                  className="bg-white/30 backdrop-blur-sm text-black font-semibold py-3 px-6 rounded-lg hover:bg-white/40 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Settings size={20} />
+                  Ir para Configurações
+                </button>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Income and Expense Columns - Centralizados */}
-        <div className="flex justify-center items-center mb-8 h-96">
-          {/* Income Column */}
-          <div className="flex-1 text-center max-w-xs">
-            <div 
-              className="text-black text-xl mb-6 cursor-pointer hover:text-green-600 transition-colors"
-              onClick={handleIncomeClick}
-            >
-              + {formatCurrency(filteredFinancialData.totalIncome)}
             </div>
-            <button
-              onClick={() => handleAddTransaction('income')}
-              className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-3xl font-bold hover:bg-gray-800 transition-colors mx-auto"
-            >
-              <Plus size={32} />
-            </button>
           </div>
-
-          {/* Divider - Linha mais alta */}
-          <div className="w-px h-full bg-black mx-4"></div>
-
-          {/* Expense Column */}
-          <div className="flex-1 text-center max-w-xs">
-            <div 
-              className="text-black text-xl mb-6 cursor-pointer hover:text-red-600 transition-colors"
-              onClick={handleExpenseClick}
-            >
-              - {formatCurrency(filteredFinancialData.totalExpenses)}
+        ) : (
+          <>
+            {/* Botões de Período */}
+            <div className="flex justify-center items-center gap-2 mb-4">
+              {periods.map((period) => (
+                <button
+                  key={period.value}
+                  onClick={() => setSelectedPeriod(period.value)}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-all ${
+                    selectedPeriod === period.value
+                      ? 'bg-black text-white scale-110'
+                      : 'bg-black text-yellow-600 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  {period.label}
+                </button>
+              ))}
             </div>
-            <button
-              onClick={() => handleAddTransaction('expense')}
-              className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-3xl font-bold hover:bg-gray-800 transition-colors mx-auto"
-            >
-              <Minus size={32} />
-            </button>
-          </div>
-        </div>
+
+            {/* Nome do Mês Atual */}
+            <div className="flex justify-center items-center mb-6">
+              <h3 className="text-lg font-bold text-black">{getCurrentDateRange()}</h3>
+            </div>
+
+            {/* Nome do Grupo Ativo com Seletor */}
+            <div className="flex justify-center items-center mb-4">
+              <div className="relative">
+                <button
+                  onClick={() => setShowGroupSelector(!showGroupSelector)}
+                  className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 hover:bg-white/30 transition-all"
+                >
+                  <span className="text-black font-medium text-sm">{activeGroup?.title || 'Sem grupo'}</span>
+                  <ChevronDown size={16} className="text-black" />
+                </button>
+
+                {/* Dropdown de Grupos */}
+                {showGroupSelector && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-30">
+                    <div className="py-1">
+                      {groups.map((group) => (
+                        <button
+                          key={group.id}
+                          onClick={() => handleGroupSelect(group)}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                            group.id === activeGroup?.id
+                              ? 'bg-yellow-50 text-yellow-700 font-medium'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {group.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Income and Expense Columns - Centralizados */}
+            <div className="flex justify-center items-center mb-8 h-96">
+              {/* Income Column */}
+              <div className="flex-1 text-center max-w-xs">
+                <div 
+                  className="text-black text-xl mb-6 cursor-pointer hover:text-green-600 transition-colors"
+                  onClick={handleIncomeClick}
+                >
+                  + {formatCurrency(filteredFinancialData.totalIncome)}
+                </div>
+                <button
+                  onClick={() => handleAddTransaction('income')}
+                  className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-3xl font-bold hover:bg-gray-800 transition-colors mx-auto"
+                >
+                  <Plus size={32} />
+                </button>
+              </div>
+
+              {/* Divider - Linha mais alta */}
+              <div className="w-px h-full bg-black mx-4"></div>
+
+              {/* Expense Column */}
+              <div className="flex-1 text-center max-w-xs">
+                <div 
+                  className="text-black text-xl mb-6 cursor-pointer hover:text-red-600 transition-colors"
+                  onClick={handleExpenseClick}
+                >
+                  - {formatCurrency(filteredFinancialData.totalExpenses)}
+                </div>
+                <button
+                  onClick={() => handleAddTransaction('expense')}
+                  className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-3xl font-bold hover:bg-gray-800 transition-colors mx-auto"
+                >
+                  <Minus size={32} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Total Fixo na parte inferior */}
-      <div className="fixed bottom-32 left-0 right-0 z-10">
-        <div className="backdrop-blur-md mx-4 rounded-t-2xl p-4">
-          <div className={`text-2xl font-bold text-black text-center`}>
-            {filteredFinancialData.balance >= 0 ? '+' : ''} {formatCurrency(filteredFinancialData.balance)}
+      {/* Total Fixo na parte inferior - Só mostrar se houver grupos */}
+      {hasGroups && (
+        <div className="fixed bottom-32 left-0 right-0 z-10">
+          <div className="backdrop-blur-md mx-4 rounded-t-2xl p-4">
+            <div className={`text-2xl font-bold text-black text-center`}>
+              {filteredFinancialData.balance >= 0 ? '+' : ''} {formatCurrency(filteredFinancialData.balance)}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Avatars Section - Fixo acima do menu de navegação */}
-      <Participants />
+      {/* Avatars Section - Fixo acima do menu de navegação - Só mostrar se houver grupos */}
+      {hasGroups && <Participants />}
 
       {/* Bottom Navigation */}
       <BottomTabs />
@@ -196,6 +236,13 @@ export default function DashboardPage() {
             setShowTransactionDetails(false);
             setSelectedTransaction(null);
           }}
+        />
+      )}
+
+      {/* New Group Modal */}
+      {showNewGroupModal && (
+        <NewGroupModal
+          onClose={() => setShowNewGroupModal(false)}
         />
       )}
 

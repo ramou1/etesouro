@@ -30,8 +30,20 @@ export default function Header() {
   }, [showDropdown]);
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+    try {
+      await logout();
+      // Limpar localStorage
+      localStorage.removeItem('user');
+      // Fechar dropdown
+      setShowDropdown(false);
+      // Forçar reload para garantir que o estado seja limpo completamente
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, tentar redirecionar e limpar
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
   };
 
   // Avatar padrão se não houver foto
@@ -73,7 +85,9 @@ export default function Header() {
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-800 truncate mb-1">{user.name}</p>
+                  <p className="text-sm font-semibold text-gray-800 truncate mb-1">
+                    {user.name || user.email?.split('@')[0] || 'Usuário'}
+                  </p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
                 <button

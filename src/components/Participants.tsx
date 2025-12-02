@@ -11,6 +11,11 @@ export default function Participants() {
         return selectedParticipants.includes(participantId);
     };
 
+    // Não renderizar se não houver grupo ativo ou membros
+    if (!activeGroup || !activeGroup.members || activeGroup.members.length === 0) {
+        return null;
+    }
+
     return (
         <div className="fixed bottom-16 left-0 right-0 bg-yellow-300 py-2 px-4 z-20 h-8">
             <div className="flex justify-center space-x-4 -mt-8">

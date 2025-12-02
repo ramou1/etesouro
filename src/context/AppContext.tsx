@@ -77,10 +77,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
             isAuthenticated: true,
           };
         } else {
-          // Se não houver dados no Firestore, criar com dados do Auth
+          // Se não houver dados no Firestore, tentar usar displayName ou email como fallback
+          const fallbackName = firebaseUser.displayName || 
+                               (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Usuário');
+          
           appUser = {
             id: firebaseUser.uid,
-            name: firebaseUser.displayName || 'Usuário',
+            name: fallbackName,
             email: firebaseUser.email || '',
             avatar: firebaseUser.photoURL || undefined,
             isAuthenticated: true,
@@ -89,10 +92,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Salvar dados no Firestore (para migrar usuários antigos)
           await saveUserData({
             id: firebaseUser.uid,
-            name: appUser.name,
+            name: fallbackName,
             email: appUser.email,
             avatar: appUser.avatar,
           });
+          
+          // Tentar buscar novamente do Firestore após salvar (pode ter sido uma condição de corrida)
+          const retryUserData = await getUserData(firebaseUser.uid);
+          if (retryUserData.success && retryUserData.data) {
+            appUser = {
+              id: retryUserData.data.id,
+              name: retryUserData.data.name,
+              email: retryUserData.data.email,
+              avatar: retryUserData.data.avatar,
+              isAuthenticated: true,
+            };
+          }
         }
         
         setUser(appUser);
@@ -133,11 +148,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const combinedGroups = await getCombinedGroups(user.id);
       setGroups(combinedGroups);
 
-      // Se o grupo ativo não estiver mais na lista, usar o primeiro
+      // Se o grupo ativo não estiver mais na lista, usar o primeiro (se houver grupos)
       setActiveGroup(prevActiveGroup => {
-        if (combinedGroups.length > 0 && !combinedGroups.find(g => g.id === prevActiveGroup.id)) {
+        if (combinedGroups.length > 0) {
+          // Se o grupo ativo ainda existe na lista, mantê-lo
+          const stillExists = combinedGroups.find(g => g.id === prevActiveGroup.id);
+          if (stillExists) {
+            return prevActiveGroup;
+          }
+          // Caso contrário, usar o primeiro grupo da lista
           return combinedGroups[0];
         }
+        // Se não houver grupos, manter o grupo anterior (pode ser mockado)
+        // O Dashboard vai verificar se há grupos e mostrar mensagem apropriada
         return prevActiveGroup;
       });
     } catch (error) {
