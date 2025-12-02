@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import BottomTabs from "@/components/ui/BottomTabs";
+import FloatingMenu from "@/components/ui/FloatingMenu";
 import Header from "@/components/ui/Header";
 import NewGroupModal from "@/components/modals/NewGroupModal";
 import NewIncomeCategoryModal from "@/components/modals/NewIncomeCategoryModal";
@@ -130,8 +130,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomTabs />
+      {/* Floating Menu */}
+      <FloatingMenu />
 
       {/* New/Edit Group Modal */}
       {(showNewGroupModal || editingGroup) && (

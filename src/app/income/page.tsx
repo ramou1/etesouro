@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import Header from '@/components/ui/Header';
-import BottomTabs from '@/components/ui/BottomTabs';
+import FloatingMenu from '@/components/ui/FloatingMenu';
 import TransactionList from '@/components/TransactionList';
 import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
 import { Transaction } from '@/types';
@@ -58,7 +58,7 @@ export default function IncomePage() {
       </div>
 
       {/* Total Fixo na parte inferior */}
-      <div className="fixed bottom-16 left-0 right-0 z-10">
+      <div className="fixed bottom-24 left-0 right-0 z-10">
         <div className="backdrop-blur-md rounded-t-2xl p-4">
           <div className="text-center">
             <p className="text-gray-600 text-sm">Total de Receitas</p>
@@ -69,8 +69,8 @@ export default function IncomePage() {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomTabs />
+      {/* Floating Menu */}
+      <FloatingMenu />
 
       {/* Transaction Details Modal */}
       {showTransactionDetails && (

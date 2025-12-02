@@ -4,7 +4,7 @@ import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import Header from '@/components/ui/Header';
-import BottomTabs from '@/components/ui/BottomTabs';
+import FloatingMenu from '@/components/ui/FloatingMenu';
 import { Transaction } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -159,8 +159,8 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomTabs />
+      {/* Floating Menu */}
+      <FloatingMenu />
     </div>
   );
 }
