@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { LogOut } from 'lucide-react';
+import Avatar from '@/components/ui/Avatar';
 
 export default function Header() {
   const { user, logout } = useApp();
@@ -46,13 +47,13 @@ export default function Header() {
     }
   };
 
-  // Avatar padrão se não houver foto
-  const avatarUrl = user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face';
-
   return (
     <div className="bg-white flex-shrink-0 sticky top-0 z-10">
       <div className="flex items-center justify-between p-4">
-        <div className="flex items-center">
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="flex items-center hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <Image
             src="/images/logo01.png"
             alt="eTE$OURO Logo"
@@ -60,7 +61,7 @@ export default function Header() {
             height={40}
             className="h-6 w-auto"
           />
-        </div>
+        </button>
         {user && (
           <div className="relative" ref={dropdownRef}>
             <button
@@ -70,15 +71,11 @@ export default function Header() {
               <span className="text-sm font-semibold text-gray-800 hidden sm:block">
                 {user.name}
               </span>
-              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200">
-                <Image
-                  src={avatarUrl}
-                  alt={user.name || 'Usuário'}
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <Avatar 
+                name={user.name || user.email || 'Usuário'}
+                size={32}
+                className="border-2 border-gray-200"
+              />
             </button>
 
             {/* Dropdown Menu */}

@@ -1,8 +1,8 @@
 // src/components/Participants.tsx
 'use client';
 
-import Image from "next/image";
 import { useApp } from '@/context/AppContext';
+import Avatar from '@/components/ui/Avatar';
 
 export default function Participants() {
     const { activeGroup, selectedParticipants, toggleParticipant } = useApp();
@@ -23,21 +23,21 @@ export default function Participants() {
                     <button
                         key={participant.id}
                         onClick={() => toggleParticipant(participant.id)}
-                        className="relative w-12 h-12 border-4 border-yellow-300 rounded-full overflow-hidden transition-all hover:scale-110 focus:outline-none"
+                        className="relative transition-all hover:scale-110 focus:outline-none"
                         title={isDisabled(participant.id) ? `${participant.name} (Desabilitado)` : participant.name}
                     >
-                        <Image 
-                            src={participant.avatar} 
-                            alt={participant.name} 
-                            width={42} 
-                            height={42} 
-                            className="w-full h-full object-cover" 
-                        />
-                        
-                        {/* Overlay amarelo quando desabilitado */}
-                        {isDisabled(participant.id) && (
-                            <div className="absolute inset-0 bg-yellow-400/70 backdrop-blur-[1px]"></div>
-                        )}
+                        <div className="relative">
+                            <Avatar 
+                                name={participant.name}
+                                size={48}
+                                className="border-4 border-yellow-300"
+                            />
+                            
+                            {/* Overlay amarelo quando desabilitado */}
+                            {isDisabled(participant.id) && (
+                                <div className="absolute inset-0 bg-yellow-400/70 backdrop-blur-[1px] rounded-full"></div>
+                            )}
+                        </div>
                     </button>
                 ))}
             </div>

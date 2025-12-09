@@ -22,7 +22,7 @@ import {
   Settings as SettingsIcon,
   Minus,
 } from "lucide-react";
-import Image from "next/image";
+import Avatar from "@/components/ui/Avatar";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("groups");
@@ -260,12 +260,9 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <Image
-                      src={member.avatar}
-                      alt={member.name}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full object-cover"
+                    <Avatar
+                      name={member.name}
+                      size={32}
                     />
                     {/* Coroa dourada para o dono da conta (admin do primeiro membro) */}
                     {member.isAdmin && member.id === "1" && (
