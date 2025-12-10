@@ -10,7 +10,8 @@ import {
   query,
   where,
   serverTimestamp,
-  Timestamp 
+  Timestamp,
+  FieldValue
 } from 'firebase/firestore';
 import { db } from './config';
 import { Group, GroupMember } from '@/types';
@@ -21,8 +22,8 @@ export interface GroupData {
   description?: string;
   members: GroupMember[];
   isTemporary: boolean;
-  createdAt?: Timestamp | null;
-  updatedAt?: Timestamp | null;
+  createdAt?: Timestamp | FieldValue | null;
+  updatedAt?: Timestamp | FieldValue | null;
 }
 
 // Salvar novo grupo no Firestore (como subcoleção do usuário)
@@ -49,10 +50,10 @@ export const saveGroup = async (
       groupId: groupId
     }));
 
-    const groupData = {
+    const groupData: GroupData = {
       id: groupId,
       title: group.title,
-      description: group.description || null,
+      description: group.description || undefined,
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
       createdAt: serverTimestamp(),
@@ -151,9 +152,12 @@ export const updateGroup = async (
     };
   }
 
+  // Criar variável local para TypeScript rastrear o tipo
+  const firestoreDb = db;
+
   try {
     // Atualizar na subcoleção: users/{userId}/groups/{groupId}
-    const groupRef = doc(db, 'users', userId, 'groups', groupId);
+    const groupRef = doc(firestoreDb, 'users', userId, 'groups', groupId);
 
     // Atualizar o groupId em todos os membros
     const membersWithGroupId = group.members.map(member => ({
@@ -164,7 +168,7 @@ export const updateGroup = async (
     const groupData = {
       id: groupId,
       title: group.title,
-      description: group.description || null,
+      description: group.description || undefined,
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
       updatedAt: serverTimestamp(),
@@ -185,7 +189,7 @@ export const updateGroup = async (
     const newMembers = membersWithGroupId.filter(m => !oldMemberIds.includes(m.id));
 
     // Buscar dados do criador para incluir no convite
-    const creatorRef = doc(db, 'users', userId);
+    const creatorRef = doc(firestoreDb, 'users', userId);
     const creatorDoc = await getDoc(creatorRef);
     const creatorData = creatorDoc.exists() ? creatorDoc.data() : null;
     
@@ -212,7 +216,7 @@ export const updateGroup = async (
       .filter(memberId => memberId !== userId && oldMemberIds.includes(memberId))
       .map(async (memberId) => {
         try {
-          const memberGroupRef = doc(db, 'users', memberId, 'groups', groupId);
+          const memberGroupRef = doc(firestoreDb, 'users', memberId, 'groups', groupId);
           await updateDoc(memberGroupRef, groupData);
         } catch (error) {
           console.error(`Erro ao atualizar grupo para membro ${memberId}:`, error);
@@ -272,8 +276,8 @@ export interface GroupInvite {
   };
   invitedTo: string; // userId do convidado
   status: 'pending' | 'accepted' | 'rejected';
-  createdAt?: Timestamp | null;
-  updatedAt?: Timestamp | null;
+  createdAt?: Timestamp | FieldValue | null;
+  updatedAt?: Timestamp | FieldValue | null;
 }
 
 // Criar convite para um grupo
@@ -376,8 +380,8 @@ export const getPendingInvites = async (
 
     // Ordenar por data de criação (mais recentes primeiro)
     invites.sort((a, b) => {
-      const aTime = a.createdAt?.toMillis() || 0;
-      const bTime = b.createdAt?.toMillis() || 0;
+      const aTime = a.createdAt instanceof Timestamp ? a.createdAt.toMillis() : 0;
+      const bTime = b.createdAt instanceof Timestamp ? b.createdAt.toMillis() : 0;
       return bTime - aTime;
     });
 

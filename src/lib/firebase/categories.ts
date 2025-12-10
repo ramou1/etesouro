@@ -189,11 +189,20 @@ export const saveMultipleCategories = async (
     };
   }
 
+  // Criar variável local para TypeScript rastrear o tipo
+  const firestoreDb = db;
+  if (!firestoreDb) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
   try {
     const promises = categories.map(async (category, index) => {
       // Adicionar índice e timestamp único para garantir IDs únicos
       const categoryId = `cat-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`;
-      const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
+      const categoryRef = doc(firestoreDb, 'users', userId, 'categories', categoryId);
       
       await setDoc(categoryRef, {
         id: categoryId,
