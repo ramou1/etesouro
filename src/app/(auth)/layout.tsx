@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 
 export default function AuthLayout({
@@ -11,16 +11,17 @@ export default function AuthLayout({
 }) {
   const { user } = useApp();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Se o usuário já está autenticado, redireciona para o dashboard
-    if (user?.isAuthenticated) {
+    // Permitir acesso à página de categorias mesmo quando autenticado (é parte do fluxo de registro)
+    if (user?.isAuthenticated && pathname !== '/register/categories') {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, router, pathname]);
 
-  // Se está autenticado, não renderiza as páginas de auth
-  if (user?.isAuthenticated) {
+  // Se está autenticado e não é a página de categorias, não renderiza
+  if (user?.isAuthenticated && pathname !== '/register/categories') {
     return null;
   }
 

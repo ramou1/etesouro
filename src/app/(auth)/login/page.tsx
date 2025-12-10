@@ -56,7 +56,7 @@ export default function LoginPage() {
               className="h-12 w-auto"
             />
           </div>
-          <p className="text-gray-600">Faça login para acessar sua conta</p>
+          <h2 className="text-sm text-gray-600">Faça login para acessar sua conta</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

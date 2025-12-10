@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Search, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Search } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import { MOCK_MEMBERS } from '@/data/mockData';
 import { GroupMember } from '@/types';
 import { useApp } from '@/context/AppContext';
 import { saveGroup, updateGroup } from '@/lib/firebase/groups';
+import { searchUsers } from '@/lib/firebase/user';
 import { Group } from '@/types';
 
 interface NewGroupModalProps {
@@ -32,18 +32,53 @@ export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
   const [contributesIncome, setContributesIncome] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<GroupMember[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Membros mockados existentes (poderia vir do contexto)
+  // Buscar usuários no Firestore quando o termo de busca mudar
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!searchTerm.trim() || searchTerm.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
 
+      setIsSearching(true);
+      try {
+        const result = await searchUsers(searchTerm.trim(), user?.id);
+        if (result.success && result.data) {
+          // Converter UserData para GroupMember
+          const members: GroupMember[] = result.data
+            .filter(userData => !selectedMembers.some(sm => sm.id === userData.id))
+            .map(userData => ({
+              id: userData.id,
+              name: userData.name,
+              email: userData.email,
+              avatar: userData.avatar || '',
+              isAdmin: false,
+              contributesIncome: false,
+            }));
+          setSearchResults(members);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
 
-  // Só mostrar membros quando houver termo de busca
-  const filteredMembers = searchTerm.trim() 
-    ? MOCK_MEMBERS.filter(member => 
-        !selectedMembers.some(sm => sm.id === member.id) &&
-        (member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         member.email.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    : [];
+    // Debounce: aguardar 300ms após o usuário parar de digitar
+    const timeoutId = setTimeout(performSearch, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, user?.id, selectedMembers]);
+
+  // Membros filtrados (excluindo os já selecionados)
+  const filteredMembers = searchResults.filter(member => 
+    !selectedMembers.some(sm => sm.id === member.id)
+  );
 
   const toggleMember = (member: GroupMember) => {
     if (selectedMembers.some(m => m.id === member.id)) {
@@ -248,9 +283,8 @@ export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
               <button
                 type="button"
                 onClick={() => setIsAddingManually(!isAddingManually)}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                className="text-xs text-blue-600 hover:text-blue-700 whitespace-nowrap"
               >
-                <Plus size={16} />
                 Adicionar Manualmente
               </button>
             </div>
@@ -270,7 +304,9 @@ export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
                 </div>
 
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {filteredMembers.length > 0 ? (
+                  {isSearching ? (
+                    <p className="text-sm text-gray-500 text-center py-4">Buscando...</p>
+                  ) : filteredMembers.length > 0 ? (
                     filteredMembers.map(member => (
                       <div
                         key={member.id}
@@ -287,10 +323,10 @@ export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
                         </div>
                       </div>
                     ))
-                  ) : searchTerm.trim() ? (
+                  ) : searchTerm.trim() && searchTerm.trim().length >= 2 ? (
                     <p className="text-sm text-gray-500 text-center py-4">Nenhum membro encontrado</p>
                   ) : (
-                    <p className="text-sm text-gray-500 text-center py-4">Digite um nome ou email para buscar</p>
+                    <p className="text-sm text-gray-500 text-center py-4">Digite pelo menos 2 caracteres para buscar</p>
                   )}
                 </div>
               </div>

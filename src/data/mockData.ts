@@ -104,7 +104,13 @@ export const MOCK_EXPENSE_CATEGORIES: Category[] = [
   { id: '4', title: 'Lazer', color: '#F3E8FF', type: 'expense' },
   { id: '5', title: 'Educação', color: '#FEF9C2', type: 'expense' },
   { id: '6', title: 'Moradia', color: '#D4F0F0', type: 'expense' },
-  { id: '7', title: 'Roupas', color: '#FFD6E7', type: 'expense' }
+  { id: '7', title: 'Roupas', color: '#FFD6E7', type: 'expense' },
+  { id: '8', title: 'Aluguel', color: '#FFE4E1', type: 'expense' },
+  { id: '9', title: 'Água', color: '#DBEAFE', type: 'expense' },
+  { id: '10', title: 'Condomínio', color: '#D4F0F0', type: 'expense' },
+  { id: '11', title: 'Luz', color: '#FEF9C2', type: 'expense' },
+  { id: '12', title: 'Plano de Saúde', color: '#DBFCE7', type: 'expense' },
+  { id: '13', title: 'Telefone', color: '#F3E8FF', type: 'expense' }
 ];
 
 export interface PaymentMethod {

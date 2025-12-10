@@ -40,7 +40,8 @@ export default function RegisterPage() {
     try {
       const result = await register(name, email, password);
       if (result.success) {
-        router.push('/dashboard');
+        // Redirecionar para página de seleção de categorias
+        router.push('/register/categories');
       } else {
         setError(result.error || 'Erro ao criar conta. Verifique se o email já não está em uso.');
       }
@@ -64,7 +65,7 @@ export default function RegisterPage() {
               className="h-12 w-auto"
             />
           </div>
-          <p className="text-gray-600">Crie sua conta gratuita</p>
+          <h2 className="text-sm text-gray-600">Crie sua conta gratuita</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -157,7 +158,7 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Criando conta...' : 'Criar conta'}
+            {isLoading ? 'Criando conta...' : 'Continuar'}
           </button>
         </form>
 

@@ -5,7 +5,8 @@ import {
   setDoc, 
   updateDoc,
   deleteDoc,
-  getDocs, 
+  getDocs,
+  getDoc,
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
@@ -46,7 +47,7 @@ export const saveGroup = async (
       groupId: groupId
     }));
 
-    await setDoc(groupRef, {
+    const groupData = {
       id: groupId,
       title: group.title,
       description: group.description || null,
@@ -54,7 +55,25 @@ export const saveGroup = async (
       isTemporary: group.isTemporary,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    await setDoc(groupRef, groupData);
+
+    // Salvar o grupo também para cada membro (exceto o criador)
+    const memberPromises = group.members
+      .filter(member => member.id !== userId)
+      .map(async (member) => {
+        try {
+          const memberGroupRef = doc(db, 'users', member.id, 'groups', groupId);
+          await setDoc(memberGroupRef, groupData);
+        } catch (error) {
+          console.error(`Erro ao salvar grupo para membro ${member.id}:`, error);
+          // Não falhar a operação principal se houver erro ao salvar para um membro
+        }
+      });
+
+    // Aguardar todas as operações de salvar para membros (mas não falhar se alguma der erro)
+    await Promise.allSettled(memberPromises);
 
     return { success: true, groupId };
   } catch (error: unknown) {
@@ -130,13 +149,55 @@ export const updateGroup = async (
       groupId: groupId
     }));
 
-    await updateDoc(groupRef, {
+    const groupData = {
+      id: groupId,
       title: group.title,
       description: group.description || null,
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    // Buscar membros antigos para identificar novos membros
+    const oldGroupDoc = await getDoc(groupRef);
+    let oldMembers: GroupMember[] = [];
+    if (oldGroupDoc.exists()) {
+      const data = oldGroupDoc.data();
+      oldMembers = data.members || [];
+    }
+
+    await updateDoc(groupRef, groupData);
+
+    // Identificar novos membros (que não estavam no grupo antes)
+    const oldMemberIds = oldMembers.map(m => m.id);
+    const newMembers = membersWithGroupId.filter(m => !oldMemberIds.includes(m.id));
+
+    // Salvar o grupo atualizado para novos membros
+    const memberPromises = newMembers
+      .filter(member => member.id !== userId)
+      .map(async (member) => {
+        try {
+          const memberGroupRef = doc(db, 'users', member.id, 'groups', groupId);
+          await setDoc(memberGroupRef, groupData);
+        } catch (error) {
+          console.error(`Erro ao salvar grupo para membro ${member.id}:`, error);
+        }
+      });
+
+    // Atualizar o grupo para todos os membros existentes também
+    const allMemberIds = membersWithGroupId.map(m => m.id);
+    const updatePromises = allMemberIds
+      .filter(memberId => memberId !== userId)
+      .map(async (memberId) => {
+        try {
+          const memberGroupRef = doc(db, 'users', memberId, 'groups', groupId);
+          await updateDoc(memberGroupRef, groupData);
+        } catch (error) {
+          console.error(`Erro ao atualizar grupo para membro ${memberId}:`, error);
+        }
+      });
+
+    await Promise.allSettled([...memberPromises, ...updatePromises]);
 
     return { success: true };
   } catch (error: unknown) {

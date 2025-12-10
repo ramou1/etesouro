@@ -1,5 +1,5 @@
 // Serviço para gerenciar dados do usuário no Firestore
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp, collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from './config';
 
 export interface UserData {
@@ -146,6 +146,72 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
   } catch (error: unknown) {
     console.error('Erro ao atualizar nome:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar nome';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Buscar usuários por nome ou email
+export const searchUsers = async (searchTerm: string, excludeUserId?: string): Promise<{ success: boolean; data?: UserData[]; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  if (!searchTerm || searchTerm.trim().length < 2) {
+    return {
+      success: true,
+      data: [],
+    };
+  }
+
+  try {
+    const usersRef = collection(db, 'users');
+    const searchLower = searchTerm.toLowerCase().trim();
+    
+    // Buscar por nome (case-insensitive não é suportado diretamente, então vamos buscar todos e filtrar)
+    // Para melhor performance, vamos limitar a busca e filtrar no cliente
+    const usersQuery = query(usersRef, limit(50));
+    const querySnapshot = await getDocs(usersQuery);
+    
+    const users: UserData[] = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data() as UserData;
+      // Usar o ID do documento ou o campo id do documento
+      const userId = data.id || docSnap.id;
+      
+      // Excluir o próprio usuário se fornecido
+      if (excludeUserId && userId === excludeUserId) {
+        return;
+      }
+      
+      // Filtrar por nome ou email que contenha o termo de busca
+      const nameMatch = data.name?.toLowerCase().includes(searchLower);
+      const emailMatch = data.email?.toLowerCase().includes(searchLower);
+      
+      if (nameMatch || emailMatch) {
+        users.push({
+          id: userId,
+          name: data.name,
+          email: data.email,
+          avatar: data.avatar,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+        });
+      }
+    });
+
+    return {
+      success: true,
+      data: users,
+    };
+  } catch (error: unknown) {
+    console.error('Erro ao buscar usuários:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar usuários';
     return {
       success: false,
       error: errorMessage,
