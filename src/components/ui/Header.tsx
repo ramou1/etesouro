@@ -4,20 +4,49 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from "@/context/AppContext";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import { LogOut } from 'lucide-react';
+import { LogOut, Bell } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import GroupInvitesModal from '@/components/modals/GroupInvitesModal';
+import { getPendingInvites } from '@/lib/firebase/groups';
 
 export default function Header() {
   const { user, logout } = useApp();
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showInvitesModal, setShowInvitesModal] = useState(false);
+  const [pendingInvitesCount, setPendingInvitesCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const invitesRef = useRef<HTMLDivElement>(null);
+
+  // Carregar contagem de convites pendentes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadInvitesCount = async () => {
+      try {
+        const result = await getPendingInvites(user.id);
+        if (result.success && result.data) {
+          setPendingInvitesCount(result.data.length);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar contagem de convites:', error);
+      }
+    };
+
+    loadInvitesCount();
+    // Recarregar a cada 30 segundos
+    const interval = setInterval(loadInvitesCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (invitesRef.current && !invitesRef.current.contains(event.target as Node)) {
+        // Não fechar o modal de convites aqui, apenas o dropdown
       }
     };
 
@@ -63,20 +92,38 @@ export default function Header() {
           />
         </button>
         {user && (
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            >
-              <span className="text-sm font-semibold text-gray-800 hidden sm:block">
-                {user.name}
-              </span>
-              <Avatar 
-                name={user.name || user.email || 'Usuário'}
-                size={32}
-                className="border-2 border-gray-200"
-              />
-            </button>
+          <div className="flex items-center gap-3">
+            {/* Botão de Convites */}
+            <div className="relative" ref={invitesRef}>
+              <button
+                onClick={() => setShowInvitesModal(true)}
+                className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Convites de grupos"
+              >
+                <Bell size={20} className="text-gray-700" />
+                {pendingInvitesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {pendingInvitesCount > 9 ? '9+' : pendingInvitesCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Avatar e Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <span className="text-sm font-semibold text-gray-800 hidden sm:block">
+                  {user.name}
+                </span>
+                <Avatar 
+                  name={user.name || user.email || 'Usuário'}
+                  size={32}
+                  className="border-2 border-gray-200"
+                />
+              </button>
 
             {/* Dropdown Menu */}
             {showDropdown && (
@@ -97,6 +144,24 @@ export default function Header() {
               </div>
             )}
           </div>
+          </div>
+        )}
+
+        {/* Modal de Convites */}
+        {showInvitesModal && (
+          <GroupInvitesModal
+            onClose={() => {
+              setShowInvitesModal(false);
+              // Recarregar contagem ao fechar
+              if (user?.id) {
+                getPendingInvites(user.id).then(result => {
+                  if (result.success && result.data) {
+                    setPendingInvitesCount(result.data.length);
+                  }
+                });
+              }
+            }}
+          />
         )}
       </div>
     </div>

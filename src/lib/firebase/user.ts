@@ -46,6 +46,9 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
       });
     }
 
+    // Sincronizar dados públicos para busca
+    await syncUserSearchData(userData);
+
     return { success: true };
   } catch (error: unknown) {
     console.error('Erro ao salvar dados do usuário:', error);
@@ -142,6 +145,19 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
       updatedAt: serverTimestamp(),
     });
 
+    // Buscar email do usuário para sincronizar
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserData;
+      // Sincronizar com userSearch
+      await syncUserSearchData({
+        id: userId,
+        name: name,
+        email: userData.email,
+        avatar: userData.avatar,
+      });
+    }
+
     return { success: true };
   } catch (error: unknown) {
     console.error('Erro ao atualizar nome:', error);
@@ -153,9 +169,136 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
   }
 };
 
-// Buscar usuários por nome ou email
-export const searchUsers = async (searchTerm: string, excludeUserId?: string): Promise<{ success: boolean; data?: UserData[]; error?: string }> => {
+// Sincronizar dados públicos do usuário para busca (coleção pública)
+export const syncUserSearchData = async (userData: UserData): Promise<{ success: boolean; error?: string }> => {
+  console.log('[syncUserSearchData] Sincronizando dados do usuário:', { id: userData.id, name: userData.name, email: userData.email });
+  
   if (!db) {
+    console.error('[syncUserSearchData] Firestore não está configurado');
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    // Criar/atualizar documento na coleção pública userSearch
+    const userSearchRef = doc(db, 'userSearch', userData.id);
+    const dataToSave = {
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      updatedAt: serverTimestamp(),
+    };
+    
+    console.log('[syncUserSearchData] Salvando na coleção userSearch:', dataToSave);
+    
+    await setDoc(userSearchRef, dataToSave, { merge: true });
+
+    console.log('[syncUserSearchData] Dados sincronizados com sucesso');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[syncUserSearchData] Erro ao sincronizar dados de busca:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao sincronizar dados';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Migrar todos os usuários existentes para a coleção userSearch (função utilitária)
+// NOTA: Esta função requer permissões para ler a coleção 'users'
+// Se as regras de segurança não permitirem, será necessário usar Cloud Functions ou ajustar as regras
+export const migrateAllUsersToSearch = async (): Promise<{ success: boolean; migrated: number; error?: string }> => {
+  console.log('[migrateAllUsersToSearch] Iniciando migração de usuários');
+  
+  if (!db) {
+    console.error('[migrateAllUsersToSearch] Firestore não está configurado');
+    return {
+      success: false,
+      migrated: 0,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    console.log('[migrateAllUsersToSearch] Tentando acessar coleção users...');
+    const usersRef = collection(db, 'users');
+    const usersQuery = query(usersRef);
+    const querySnapshot = await getDocs(usersQuery);
+    
+    console.log('[migrateAllUsersToSearch] Total de usuários encontrados:', querySnapshot.size);
+    
+    if (querySnapshot.size === 0) {
+      return {
+        success: true,
+        migrated: 0,
+        error: 'Nenhum usuário encontrado na coleção users. Verifique as regras de segurança do Firestore.',
+      };
+    }
+    
+    let migrated = 0;
+    const promises: Promise<void>[] = [];
+    
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data() as UserData;
+      const userId = data.id || docSnap.id;
+      
+      if (data.name && data.email) {
+        const promise = syncUserSearchData({
+          id: userId,
+          name: data.name,
+          email: data.email,
+          avatar: data.avatar,
+        }).then(() => {
+          migrated++;
+          console.log('[migrateAllUsersToSearch] Usuário migrado:', userId, data.name);
+        }).catch((error) => {
+          console.error('[migrateAllUsersToSearch] Erro ao migrar usuário:', userId, error);
+        });
+        
+        promises.push(promise);
+      } else {
+        console.warn('[migrateAllUsersToSearch] Usuário sem nome ou email:', userId);
+      }
+    });
+    
+    await Promise.allSettled(promises);
+    
+    console.log('[migrateAllUsersToSearch] Migração concluída:', { migrated, total: querySnapshot.size });
+    
+    return {
+      success: true,
+      migrated,
+    };
+  } catch (error: unknown) {
+    console.error('[migrateAllUsersToSearch] Erro na migração:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro na migração';
+    
+    // Verificar se é erro de permissão
+    if (errorMessage.includes('permission') || errorMessage.includes('Permission')) {
+      return {
+        success: false,
+        migrated: 0,
+        error: 'Erro de permissão: Não é possível acessar a coleção "users". Verifique as regras de segurança do Firestore ou use Cloud Functions para migração.',
+      };
+    }
+    
+    return {
+      success: false,
+      migrated: 0,
+      error: errorMessage,
+    };
+  }
+};
+
+// Buscar usuários por nome ou email (usando coleção pública userSearch)
+export const searchUsers = async (searchTerm: string, excludeUserId?: string): Promise<{ success: boolean; data?: UserData[]; error?: string }> => {
+  console.log('[searchUsers] Iniciando busca:', { searchTerm, excludeUserId });
+  
+  if (!db) {
+    console.error('[searchUsers] Firestore não está configurado');
     return {
       success: false,
       error: 'Firestore não está configurado.',
@@ -163,6 +306,7 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
   }
 
   if (!searchTerm || searchTerm.trim().length < 2) {
+    console.log('[searchUsers] Termo de busca muito curto');
     return {
       success: true,
       data: [],
@@ -170,13 +314,17 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
   }
 
   try {
-    const usersRef = collection(db, 'users');
+    // Buscar na coleção pública userSearch (mais permissiva)
+    const userSearchRef = collection(db, 'userSearch');
     const searchLower = searchTerm.toLowerCase().trim();
     
-    // Buscar por nome (case-insensitive não é suportado diretamente, então vamos buscar todos e filtrar)
-    // Para melhor performance, vamos limitar a busca e filtrar no cliente
-    const usersQuery = query(usersRef, limit(50));
+    console.log('[searchUsers] Buscando na coleção userSearch com termo:', searchLower);
+    
+    // Buscar todos os documentos (limitado a 50 para performance)
+    const usersQuery = query(userSearchRef, limit(50));
     const querySnapshot = await getDocs(usersQuery);
+    
+    console.log('[searchUsers] Total de documentos encontrados na coleção:', querySnapshot.size);
     
     const users: UserData[] = [];
     querySnapshot.forEach((docSnap) => {
@@ -184,8 +332,11 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
       // Usar o ID do documento ou o campo id do documento
       const userId = data.id || docSnap.id;
       
+      console.log('[searchUsers] Verificando usuário:', { userId, name: data.name, email: data.email });
+      
       // Excluir o próprio usuário se fornecido
       if (excludeUserId && userId === excludeUserId) {
+        console.log('[searchUsers] Usuário excluído (é o próprio usuário):', userId);
         return;
       }
       
@@ -193,24 +344,36 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
       const nameMatch = data.name?.toLowerCase().includes(searchLower);
       const emailMatch = data.email?.toLowerCase().includes(searchLower);
       
+      console.log('[searchUsers] Resultado do filtro:', { nameMatch, emailMatch, name: data.name, email: data.email });
+      
       if (nameMatch || emailMatch) {
         users.push({
           id: userId,
           name: data.name,
           email: data.email,
-          avatar: data.avatar,
+          avatar: data.avatar || undefined,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         });
+        console.log('[searchUsers] Usuário adicionado à lista:', { id: userId, name: data.name });
       }
+    });
+
+    // Limitar a 5 usuários
+    const limitedUsers = users.slice(0, 5);
+    
+    console.log('[searchUsers] Busca concluída:', { 
+      totalEncontrados: users.length, 
+      limitados: limitedUsers.length,
+      usuarios: limitedUsers.map(u => ({ id: u.id, name: u.name, email: u.email }))
     });
 
     return {
       success: true,
-      data: users,
+      data: limitedUsers,
     };
   } catch (error: unknown) {
-    console.error('Erro ao buscar usuários:', error);
+    console.error('[searchUsers] Erro ao buscar usuários:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar usuários';
     return {
       success: false,

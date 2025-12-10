@@ -7,6 +7,8 @@ import {
   deleteDoc,
   getDocs,
   getDoc,
+  query,
+  where,
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
@@ -59,21 +61,31 @@ export const saveGroup = async (
 
     await setDoc(groupRef, groupData);
 
-    // Salvar o grupo também para cada membro (exceto o criador)
-    const memberPromises = group.members
+    // Criar convites para cada membro (exceto o criador)
+    // Buscar dados do criador para incluir no convite
+    const creatorRef = doc(db, 'users', userId);
+    const creatorDoc = await getDoc(creatorRef);
+    const creatorData = creatorDoc.exists() ? creatorDoc.data() : null;
+    
+    const creatorInfo = {
+      id: userId,
+      name: creatorData?.name || 'Usuário',
+      email: creatorData?.email || '',
+    };
+
+    const invitePromises = group.members
       .filter(member => member.id !== userId)
       .map(async (member) => {
         try {
-          const memberGroupRef = doc(db, 'users', member.id, 'groups', groupId);
-          await setDoc(memberGroupRef, groupData);
+          await createGroupInvite(groupId, groupData, creatorInfo, member.id);
         } catch (error) {
-          console.error(`Erro ao salvar grupo para membro ${member.id}:`, error);
-          // Não falhar a operação principal se houver erro ao salvar para um membro
+          console.error(`Erro ao criar convite para membro ${member.id}:`, error);
+          // Não falhar a operação principal se houver erro ao criar convite
         }
       });
 
-    // Aguardar todas as operações de salvar para membros (mas não falhar se alguma der erro)
-    await Promise.allSettled(memberPromises);
+    // Aguardar todas as operações de criar convites (mas não falhar se alguma der erro)
+    await Promise.allSettled(invitePromises);
 
     return { success: true, groupId };
   } catch (error: unknown) {
@@ -172,22 +184,32 @@ export const updateGroup = async (
     const oldMemberIds = oldMembers.map(m => m.id);
     const newMembers = membersWithGroupId.filter(m => !oldMemberIds.includes(m.id));
 
-    // Salvar o grupo atualizado para novos membros
-    const memberPromises = newMembers
+    // Buscar dados do criador para incluir no convite
+    const creatorRef = doc(db, 'users', userId);
+    const creatorDoc = await getDoc(creatorRef);
+    const creatorData = creatorDoc.exists() ? creatorDoc.data() : null;
+    
+    const creatorInfo = {
+      id: userId,
+      name: creatorData?.name || 'Usuário',
+      email: creatorData?.email || '',
+    };
+
+    // Criar convites para novos membros
+    const invitePromises = newMembers
       .filter(member => member.id !== userId)
       .map(async (member) => {
         try {
-          const memberGroupRef = doc(db, 'users', member.id, 'groups', groupId);
-          await setDoc(memberGroupRef, groupData);
+          await createGroupInvite(groupId, groupData, creatorInfo, member.id);
         } catch (error) {
-          console.error(`Erro ao salvar grupo para membro ${member.id}:`, error);
+          console.error(`Erro ao criar convite para novo membro ${member.id}:`, error);
         }
       });
 
-    // Atualizar o grupo para todos os membros existentes também
+    // Atualizar o grupo para todos os membros existentes (que já aceitaram o convite)
     const allMemberIds = membersWithGroupId.map(m => m.id);
     const updatePromises = allMemberIds
-      .filter(memberId => memberId !== userId)
+      .filter(memberId => memberId !== userId && oldMemberIds.includes(memberId))
       .map(async (memberId) => {
         try {
           const memberGroupRef = doc(db, 'users', memberId, 'groups', groupId);
@@ -197,7 +219,7 @@ export const updateGroup = async (
         }
       });
 
-    await Promise.allSettled([...memberPromises, ...updatePromises]);
+    await Promise.allSettled([...invitePromises, ...updatePromises]);
 
     return { success: true };
   } catch (error: unknown) {
@@ -230,6 +252,256 @@ export const deleteGroup = async (
   } catch (error: unknown) {
     console.error('Erro ao deletar grupo:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao deletar grupo';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// ========== SISTEMA DE CONVITES ==========
+
+export interface GroupInvite {
+  id: string;
+  groupId: string;
+  groupData: GroupData;
+  invitedBy: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  invitedTo: string; // userId do convidado
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt?: Timestamp | null;
+  updatedAt?: Timestamp | null;
+}
+
+// Criar convite para um grupo
+export const createGroupInvite = async (
+  groupId: string,
+  groupData: GroupData,
+  invitedBy: { id: string; name: string; email: string },
+  invitedToUserId: string
+): Promise<{ success: boolean; error?: string; inviteId?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    // Verificar se já existe um convite pendente
+    const invitesRef = collection(db, 'groupInvites');
+    const existingInviteQuery = query(
+      invitesRef,
+      where('groupId', '==', groupId),
+      where('invitedTo', '==', invitedToUserId),
+      where('status', '==', 'pending')
+    );
+    const existingInvites = await getDocs(existingInviteQuery);
+    
+    if (!existingInvites.empty) {
+      return {
+        success: false,
+        error: 'Já existe um convite pendente para este usuário neste grupo.',
+      };
+    }
+
+    // Criar novo convite
+    const inviteId = `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const inviteRef = doc(db, 'groupInvites', inviteId);
+    
+    const inviteData = {
+      id: inviteId,
+      groupId,
+      groupData,
+      invitedBy,
+      invitedTo: invitedToUserId,
+      status: 'pending' as const,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    
+    console.log('[createGroupInvite] Criando convite com dados:', {
+      inviteId,
+      groupId,
+      invitedTo: invitedToUserId,
+      invitedBy: invitedBy.id,
+      status: 'pending'
+    });
+    
+    await setDoc(inviteRef, inviteData);
+
+    return { success: true, inviteId };
+  } catch (error: unknown) {
+    console.error('Erro ao criar convite:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao criar convite';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Buscar convites pendentes de um usuário
+export const getPendingInvites = async (
+  userId: string
+): Promise<{ success: boolean; data?: GroupInvite[]; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    console.log('[getPendingInvites] Buscando convites para usuário:', userId);
+    const invitesRef = collection(db, 'groupInvites');
+    const invitesQuery = query(
+      invitesRef,
+      where('invitedTo', '==', userId),
+      where('status', '==', 'pending')
+    );
+    console.log('[getPendingInvites] Query criada, executando...');
+    const querySnapshot = await getDocs(invitesQuery);
+    console.log('[getPendingInvites] Documentos encontrados:', querySnapshot.size);
+    
+    const invites: GroupInvite[] = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data() as GroupInvite;
+      console.log('[getPendingInvites] Convite encontrado:', { id: data.id, groupId: data.groupId, invitedTo: data.invitedTo });
+      invites.push(data);
+    });
+
+    // Ordenar por data de criação (mais recentes primeiro)
+    invites.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0;
+      const bTime = b.createdAt?.toMillis() || 0;
+      return bTime - aTime;
+    });
+
+    return {
+      success: true,
+      data: invites,
+    };
+  } catch (error: unknown) {
+    console.error('Erro ao buscar convites:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar convites';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Aceitar convite
+export const acceptGroupInvite = async (
+  inviteId: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    // Buscar o convite
+    const inviteRef = doc(db, 'groupInvites', inviteId);
+    const inviteDoc = await getDoc(inviteRef);
+    
+    if (!inviteDoc.exists()) {
+      return {
+        success: false,
+        error: 'Convite não encontrado.',
+      };
+    }
+
+    const inviteData = inviteDoc.data() as GroupInvite;
+    
+    // Verificar se o convite é para o usuário correto
+    if (inviteData.invitedTo !== userId) {
+      return {
+        success: false,
+        error: 'Este convite não é para você.',
+      };
+    }
+
+    // Verificar se o convite ainda está pendente
+    if (inviteData.status !== 'pending') {
+      return {
+        success: false,
+        error: 'Este convite já foi processado.',
+      };
+    }
+
+    // Atualizar status do convite
+    await updateDoc(inviteRef, {
+      status: 'accepted',
+      updatedAt: serverTimestamp(),
+    });
+
+    // Salvar o grupo na conta do usuário
+    const groupRef = doc(db, 'users', userId, 'groups', inviteData.groupId);
+    await setDoc(groupRef, inviteData.groupData);
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao aceitar convite:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao aceitar convite';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Recusar convite
+export const rejectGroupInvite = async (
+  inviteId: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    // Buscar o convite
+    const inviteRef = doc(db, 'groupInvites', inviteId);
+    const inviteDoc = await getDoc(inviteRef);
+    
+    if (!inviteDoc.exists()) {
+      return {
+        success: false,
+        error: 'Convite não encontrado.',
+      };
+    }
+
+    const inviteData = inviteDoc.data() as GroupInvite;
+    
+    // Verificar se o convite é para o usuário correto
+    if (inviteData.invitedTo !== userId) {
+      return {
+        success: false,
+        error: 'Este convite não é para você.',
+      };
+    }
+
+    // Atualizar status do convite
+    await updateDoc(inviteRef, {
+      status: 'rejected',
+      updatedAt: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao recusar convite:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao recusar convite';
     return {
       success: false,
       error: errorMessage,

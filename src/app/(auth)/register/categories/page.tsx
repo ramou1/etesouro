@@ -190,7 +190,7 @@ export default function SelectCategoriesPage() {
           <button
             type="button"
             onClick={handleFinish}
-            disabled={isLoading}
+            disabled={isLoading || (selectedIncomeCategories.length === 0 && selectedExpenseCategories.length === 0)}
             className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             {isLoading ? 'Salvando...' : 'Finalizar'}

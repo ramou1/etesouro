@@ -39,14 +39,19 @@ export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
   useEffect(() => {
     const performSearch = async () => {
       if (!searchTerm.trim() || searchTerm.trim().length < 2) {
+        console.log('[NewGroupModal] Termo de busca muito curto, limpando resultados');
         setSearchResults([]);
         return;
       }
 
+      console.log('[NewGroupModal] Iniciando busca com termo:', searchTerm.trim());
       setIsSearching(true);
       try {
         const result = await searchUsers(searchTerm.trim(), user?.id);
+        console.log('[NewGroupModal] Resultado da busca:', result);
+        
         if (result.success && result.data) {
+          console.log('[NewGroupModal] Usuários encontrados:', result.data.length);
           // Converter UserData para GroupMember
           const members: GroupMember[] = result.data
             .filter(userData => !selectedMembers.some(sm => sm.id === userData.id))
@@ -58,12 +63,14 @@ export default function NewGroupModal({ onClose, group }: NewGroupModalProps) {
               isAdmin: false,
               contributesIncome: false,
             }));
+          console.log('[NewGroupModal] Membros convertidos:', members.length);
           setSearchResults(members);
         } else {
+          console.log('[NewGroupModal] Nenhum resultado ou erro:', result.error);
           setSearchResults([]);
         }
       } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
+        console.error('[NewGroupModal] Erro ao buscar usuários:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);

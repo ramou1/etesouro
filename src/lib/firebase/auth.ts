@@ -99,7 +99,7 @@ export const registerWithEmail = async (
         displayName: name,
       });
 
-      // Salvar dados do usuário no Firestore
+      // Salvar dados do usuário no Firestore (já sincroniza com userSearch)
       await saveUserData({
         id: userCredential.user.uid,
         name: name,
