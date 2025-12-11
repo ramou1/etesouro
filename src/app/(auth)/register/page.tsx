@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [allowGroupInvites, setAllowGroupInvites] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -38,7 +39,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const result = await register(name, email, password);
+      const result = await register(name, email, password, allowGroupInvites);
       if (result.success) {
         // Redirecionar para página de seleção de categorias
         router.push('/register/categories');
@@ -145,6 +146,22 @@ export default function RegisterPage() {
                 {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              id="allowGroupInvites"
+              checked={allowGroupInvites}
+              onChange={(e) => setAllowGroupInvites(e.target.checked)}
+              className="mt-1 w-5 h-5 rounded-md text-yellow-500 border-gray-300 focus:ring-yellow-500"
+            />
+            <label htmlFor="allowGroupInvites" className="text-sm text-gray-700">
+              Permitir que outros usuários me convidem para grupos
+              <span className="block text-xs text-gray-500 mt-1">
+                Se desmarcado, você não aparecerá nas pesquisas de usuários para convites de grupos
+              </span>
+            </label>
           </div>
 
           {error && (

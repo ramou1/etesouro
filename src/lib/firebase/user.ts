@@ -7,6 +7,7 @@ export interface UserData {
   name: string;
   email: string;
   avatar?: string;
+  allowGroupInvites?: boolean;
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
 }
@@ -32,6 +33,7 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
         name: userData.name,
         email: userData.email,
         avatar: userData.avatar || null,
+        allowGroupInvites: userData.allowGroupInvites ?? true,
         updatedAt: serverTimestamp(),
       });
     } else {
@@ -41,6 +43,7 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
         name: userData.name,
         email: userData.email,
         avatar: userData.avatar || null,
+        allowGroupInvites: userData.allowGroupInvites ?? true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -82,6 +85,7 @@ export const getUserData = async (userId: string): Promise<{ success: boolean; d
           name: data.name,
           email: data.email,
           avatar: data.avatar,
+          allowGroupInvites: data.allowGroupInvites,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         },
@@ -155,6 +159,7 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
         name: name,
         email: userData.email,
         avatar: userData.avatar,
+        allowGroupInvites: userData.allowGroupInvites,
       });
     }
 
@@ -188,6 +193,7 @@ export const syncUserSearchData = async (userData: UserData): Promise<{ success:
       id: userData.id,
       name: userData.name,
       email: userData.email,
+      allowGroupInvites: userData.allowGroupInvites !== undefined ? userData.allowGroupInvites : true,
       updatedAt: serverTimestamp(),
     };
     
@@ -344,9 +350,12 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
       const nameMatch = data.name?.toLowerCase().includes(searchLower);
       const emailMatch = data.email?.toLowerCase().includes(searchLower);
       
-      console.log('[searchUsers] Resultado do filtro:', { nameMatch, emailMatch, name: data.name, email: data.email });
+      // Verificar se o usuário permite convites de grupos
+      const allowsInvites = data.allowGroupInvites ?? true;
       
-      if (nameMatch || emailMatch) {
+      console.log('[searchUsers] Resultado do filtro:', { nameMatch, emailMatch, allowsInvites, name: data.name, email: data.email });
+      
+      if ((nameMatch || emailMatch) && allowsInvites) {
         users.push({
           id: userId,
           name: data.name,

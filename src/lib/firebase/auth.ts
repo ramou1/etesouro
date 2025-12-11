@@ -76,7 +76,8 @@ const getErrorMessage = (error: unknown): string => {
 export const registerWithEmail = async (
   name: string,
   email: string,
-  password: string
+  password: string,
+  allowGroupInvites: boolean = true
 ): Promise<{ success: boolean; user?: FirebaseUser; error?: string }> => {
   if (!auth) {
     return {
@@ -105,6 +106,7 @@ export const registerWithEmail = async (
         name: name,
         email: email,
         avatar: userCredential.user.photoURL || undefined,
+        allowGroupInvites: allowGroupInvites,
       });
     }
 

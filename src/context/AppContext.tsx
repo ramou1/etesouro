@@ -28,7 +28,7 @@ interface AppContextType {
   removeTransaction: (id: string) => void;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string, allowGroupInvites?: boolean) => Promise<{ success: boolean; error?: string }>;
   selectedParticipants: string[];
   toggleParticipant: (participantId: string) => void;
   getFilteredFinancialData: () => FinancialData;
@@ -243,9 +243,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const register = async (name: string, email: string, password: string, allowGroupInvites: boolean = true): Promise<{ success: boolean; error?: string }> => {
     try {
-      const result = await registerWithEmail(name, email, password);
+      const result = await registerWithEmail(name, email, password, allowGroupInvites);
       // O estado do usuário será atualizado automaticamente pelo onAuthStateChanged
       return { success: result.success, error: result.error };
     } catch (error) {
