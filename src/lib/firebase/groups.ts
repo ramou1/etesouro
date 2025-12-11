@@ -429,6 +429,12 @@ export const acceptGroupInvite = async (
     const groupRef = doc(db, 'users', userId, 'groups', inviteData.groupId);
     await setDoc(groupRef, inviteData.groupData);
 
+    // NOTA: Não copiamos transações antigas aqui devido às regras de segurança do Firestore
+    // Cada usuário só pode ler suas próprias transações. As transações antigas permanecerão
+    // apenas com os membros que já estavam no grupo. No entanto, todas as NOVAS transações
+    // criadas após o membro aceitar o convite serão automaticamente sincronizadas para todos
+    // os membros do grupo, incluindo o novo membro, através da função saveTransaction.
+
     return { success: true };
   } catch (error: unknown) {
     console.error('Erro ao aceitar convite:', error);
