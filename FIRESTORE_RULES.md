@@ -41,12 +41,12 @@ service cloud.firestore {
     // Coleção de convites de grupos
     match /groupInvites/{inviteId} {
       // Usuário pode ler apenas seus próprios convites (onde ele é o convidado)
-      // Esta regra funciona para queries quando o campo 'invitedTo' corresponde ao userId
+      // Permite tanto leitura individual quanto queries
       allow read: if request.auth != null && 
-                     resource.data.invitedTo == request.auth.uid;
+                     (resource == null || resource.data.invitedTo == request.auth.uid);
       
       // Permitir criação de convites por usuários autenticados
-      // Simplificado: qualquer usuário autenticado pode criar convites
+      // Qualquer usuário autenticado pode criar convites para outros usuários
       allow create: if request.auth != null;
       
       // Permitir atualização apenas pelo convidado e apenas para aceitar/recusar

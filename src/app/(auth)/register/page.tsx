@@ -41,8 +41,8 @@ export default function RegisterPage() {
     try {
       const result = await register(name, email, password, allowGroupInvites);
       if (result.success) {
-        // Redirecionar para página de seleção de categorias
-        router.push('/register/categories');
+        // Redirecionar para página de seleção de categorias usando replace para evitar interferência do AuthLayout
+        router.replace('/register/categories');
       } else {
         setError(result.error || 'Erro ao criar conta. Verifique se o email já não está em uso.');
       }

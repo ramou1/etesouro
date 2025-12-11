@@ -14,14 +14,16 @@ export default function AuthLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Permitir acesso à página de categorias mesmo quando autenticado (é parte do fluxo de registro)
-    if (user?.isAuthenticated && pathname !== '/register/categories') {
+    // Permitir acesso às páginas de registro e categorias mesmo quando autenticado (é parte do fluxo de registro)
+    const isRegisterFlow = pathname === '/register' || pathname === '/register/categories';
+    if (user?.isAuthenticated && !isRegisterFlow) {
       router.push('/dashboard');
     }
   }, [user, router, pathname]);
 
-  // Se está autenticado e não é a página de categorias, não renderiza
-  if (user?.isAuthenticated && pathname !== '/register/categories') {
+  // Se está autenticado e não é parte do fluxo de registro, não renderiza
+  const isRegisterFlow = pathname === '/register' || pathname === '/register/categories';
+  if (user?.isAuthenticated && !isRegisterFlow) {
     return null;
   }
 

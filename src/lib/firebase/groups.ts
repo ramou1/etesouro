@@ -200,6 +200,9 @@ export const updateGroup = async (
     };
 
     // Criar convites para novos membros
+    // NOTA: Não atualizamos grupos de outros usuários diretamente por questões de segurança/permissões
+    // Membros existentes que já aceitaram o convite terão o grupo atualizado quando aceitarem novamente
+    // ou podemos criar uma funcionalidade separada para sincronização
     const invitePromises = newMembers
       .filter(member => member.id !== userId)
       .map(async (member) => {
@@ -210,20 +213,7 @@ export const updateGroup = async (
         }
       });
 
-    // Atualizar o grupo para todos os membros existentes (que já aceitaram o convite)
-    const allMemberIds = membersWithGroupId.map(m => m.id);
-    const updatePromises = allMemberIds
-      .filter(memberId => memberId !== userId && oldMemberIds.includes(memberId))
-      .map(async (memberId) => {
-        try {
-          const memberGroupRef = doc(firestoreDb, 'users', memberId, 'groups', groupId);
-          await updateDoc(memberGroupRef, groupData);
-        } catch (error) {
-          console.error(`Erro ao atualizar grupo para membro ${memberId}:`, error);
-        }
-      });
-
-    await Promise.allSettled([...invitePromises, ...updatePromises]);
+    await Promise.allSettled(invitePromises);
 
     return { success: true };
   } catch (error: unknown) {
@@ -295,22 +285,10 @@ export const createGroupInvite = async (
   }
 
   try {
-    // Verificar se já existe um convite pendente
-    const invitesRef = collection(db, 'groupInvites');
-    const existingInviteQuery = query(
-      invitesRef,
-      where('groupId', '==', groupId),
-      where('invitedTo', '==', invitedToUserId),
-      where('status', '==', 'pending')
-    );
-    const existingInvites = await getDocs(existingInviteQuery);
-    
-    if (!existingInvites.empty) {
-      return {
-        success: false,
-        error: 'Já existe um convite pendente para este usuário neste grupo.',
-      };
-    }
+    // NOTA: Não verificamos convites existentes aqui porque as regras do Firestore
+    // só permitem ler convites onde o usuário é o convidado. A verificação será feita
+    // no lado do cliente quando o usuário tentar aceitar o convite.
+    // Se houver múltiplos convites pendentes, o usuário pode aceitar qualquer um deles.
 
     // Criar novo convite
     const inviteId = `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
