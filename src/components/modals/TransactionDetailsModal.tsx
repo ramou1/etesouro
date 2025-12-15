@@ -126,23 +126,23 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
+        <div className="mt-6 pt-4 border-t border-gray-200">
           {!showDeleteConfirm ? (
-            <>
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Trash2 size={18} />
-                Excluir Transação
+                Excluir
               </button>
               <button
                 onClick={onClose}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
               >
                 Fechar
               </button>
-            </>
+            </div>
           ) : (
             <>
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
@@ -156,7 +156,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors hover:bg-gray-50"
+                  className="border border-gray-300 text-gray-700 font-semibold p-3 rounded-lg transition-colors hover:bg-gray-50"
                   disabled={isDeleting}
                 >
                   Cancelar
@@ -164,13 +164,10 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold p-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isDeleting ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      Excluindo...
-                    </>
+                    'Excluindo...'
                   ) : (
                     <>
                       <Trash2 size={18} />

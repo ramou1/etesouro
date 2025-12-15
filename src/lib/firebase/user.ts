@@ -176,8 +176,6 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
 
 // Sincronizar dados públicos do usuário para busca (coleção pública)
 export const syncUserSearchData = async (userData: UserData): Promise<{ success: boolean; error?: string }> => {
-  console.log('[syncUserSearchData] Sincronizando dados do usuário:', { id: userData.id, name: userData.name, email: userData.email });
-  
   if (!db) {
     console.error('[syncUserSearchData] Firestore não está configurado');
     return {
@@ -197,11 +195,8 @@ export const syncUserSearchData = async (userData: UserData): Promise<{ success:
       updatedAt: serverTimestamp(),
     };
     
-    console.log('[syncUserSearchData] Salvando na coleção userSearch:', dataToSave);
-    
     await setDoc(userSearchRef, dataToSave, { merge: true });
 
-    console.log('[syncUserSearchData] Dados sincronizados com sucesso');
     return { success: true };
   } catch (error: unknown) {
     console.error('[syncUserSearchData] Erro ao sincronizar dados de busca:', error);
@@ -217,8 +212,6 @@ export const syncUserSearchData = async (userData: UserData): Promise<{ success:
 // NOTA: Esta função requer permissões para ler a coleção 'users'
 // Se as regras de segurança não permitirem, será necessário usar Cloud Functions ou ajustar as regras
 export const migrateAllUsersToSearch = async (): Promise<{ success: boolean; migrated: number; error?: string }> => {
-  console.log('[migrateAllUsersToSearch] Iniciando migração de usuários');
-  
   if (!db) {
     console.error('[migrateAllUsersToSearch] Firestore não está configurado');
     return {
@@ -229,12 +222,9 @@ export const migrateAllUsersToSearch = async (): Promise<{ success: boolean; mig
   }
 
   try {
-    console.log('[migrateAllUsersToSearch] Tentando acessar coleção users...');
     const usersRef = collection(db, 'users');
     const usersQuery = query(usersRef);
     const querySnapshot = await getDocs(usersQuery);
-    
-    console.log('[migrateAllUsersToSearch] Total de usuários encontrados:', querySnapshot.size);
     
     if (querySnapshot.size === 0) {
       return {
@@ -259,20 +249,15 @@ export const migrateAllUsersToSearch = async (): Promise<{ success: boolean; mig
           avatar: data.avatar,
         }).then(() => {
           migrated++;
-          console.log('[migrateAllUsersToSearch] Usuário migrado:', userId, data.name);
         }).catch((error) => {
           console.error('[migrateAllUsersToSearch] Erro ao migrar usuário:', userId, error);
         });
         
         promises.push(promise);
-      } else {
-        console.warn('[migrateAllUsersToSearch] Usuário sem nome ou email:', userId);
       }
     });
     
     await Promise.allSettled(promises);
-    
-    console.log('[migrateAllUsersToSearch] Migração concluída:', { migrated, total: querySnapshot.size });
     
     return {
       success: true,
@@ -301,8 +286,6 @@ export const migrateAllUsersToSearch = async (): Promise<{ success: boolean; mig
 
 // Buscar usuários por nome ou email (usando coleção pública userSearch)
 export const searchUsers = async (searchTerm: string, excludeUserId?: string): Promise<{ success: boolean; data?: UserData[]; error?: string }> => {
-  console.log('[searchUsers] Iniciando busca:', { searchTerm, excludeUserId });
-  
   if (!db) {
     console.error('[searchUsers] Firestore não está configurado');
     return {
@@ -312,7 +295,6 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
   }
 
   if (!searchTerm || searchTerm.trim().length < 2) {
-    console.log('[searchUsers] Termo de busca muito curto');
     return {
       success: true,
       data: [],
@@ -324,13 +306,9 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
     const userSearchRef = collection(db, 'userSearch');
     const searchLower = searchTerm.toLowerCase().trim();
     
-    console.log('[searchUsers] Buscando na coleção userSearch com termo:', searchLower);
-    
     // Buscar todos os documentos (limitado a 50 para performance)
     const usersQuery = query(userSearchRef, limit(50));
     const querySnapshot = await getDocs(usersQuery);
-    
-    console.log('[searchUsers] Total de documentos encontrados na coleção:', querySnapshot.size);
     
     const users: UserData[] = [];
     querySnapshot.forEach((docSnap) => {
@@ -338,11 +316,8 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
       // Usar o ID do documento ou o campo id do documento
       const userId = data.id || docSnap.id;
       
-      console.log('[searchUsers] Verificando usuário:', { userId, name: data.name, email: data.email });
-      
       // Excluir o próprio usuário se fornecido
       if (excludeUserId && userId === excludeUserId) {
-        console.log('[searchUsers] Usuário excluído (é o próprio usuário):', userId);
         return;
       }
       
@@ -353,8 +328,6 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
       // Verificar se o usuário permite convites de grupos
       const allowsInvites = data.allowGroupInvites ?? true;
       
-      console.log('[searchUsers] Resultado do filtro:', { nameMatch, emailMatch, allowsInvites, name: data.name, email: data.email });
-      
       if ((nameMatch || emailMatch) && allowsInvites) {
         users.push({
           id: userId,
@@ -364,18 +337,11 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         });
-        console.log('[searchUsers] Usuário adicionado à lista:', { id: userId, name: data.name });
       }
     });
 
     // Limitar a 5 usuários
     const limitedUsers = users.slice(0, 5);
-    
-    console.log('[searchUsers] Busca concluída:', { 
-      totalEncontrados: users.length, 
-      limitados: limitedUsers.length,
-      usuarios: limitedUsers.map(u => ({ id: u.id, name: u.name, email: u.email }))
-    });
 
     return {
       success: true,

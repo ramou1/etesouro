@@ -305,14 +305,6 @@ export const createGroupInvite = async (
       updatedAt: serverTimestamp(),
     };
     
-    console.log('[createGroupInvite] Criando convite com dados:', {
-      inviteId,
-      groupId,
-      invitedTo: invitedToUserId,
-      invitedBy: invitedBy.id,
-      status: 'pending'
-    });
-    
     await setDoc(inviteRef, inviteData);
 
     return { success: true, inviteId };
@@ -338,21 +330,17 @@ export const getPendingInvites = async (
   }
 
   try {
-    console.log('[getPendingInvites] Buscando convites para usuário:', userId);
     const invitesRef = collection(db, 'groupInvites');
     const invitesQuery = query(
       invitesRef,
       where('invitedTo', '==', userId),
       where('status', '==', 'pending')
     );
-    console.log('[getPendingInvites] Query criada, executando...');
     const querySnapshot = await getDocs(invitesQuery);
-    console.log('[getPendingInvites] Documentos encontrados:', querySnapshot.size);
     
     const invites: GroupInvite[] = [];
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data() as GroupInvite;
-      console.log('[getPendingInvites] Convite encontrado:', { id: data.id, groupId: data.groupId, invitedTo: data.invitedTo });
       invites.push(data);
     });
 

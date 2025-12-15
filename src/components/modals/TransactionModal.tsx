@@ -206,22 +206,18 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
               Categoria (opcional)
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedCategory('')}
-                className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
-                  selectedCategory === ''
-                    ? `border-yellow-500 text-yellow-500`
-                    : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Nenhuma
-              </button>
               {categories.map(category => (
                 <button
                   key={category.id}
                   type="button"
-                  onClick={() => setSelectedCategory(category.title)}
+                  onClick={() => {
+                    // Se a categoria já está selecionada, desmarca (toggle)
+                    if (selectedCategory === category.title) {
+                      setSelectedCategory('');
+                    } else {
+                      setSelectedCategory(category.title);
+                    }
+                  }}
                   className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
                     selectedCategory === category.title
                       ? `border-yellow-500 text-yellow-500`
