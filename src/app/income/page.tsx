@@ -34,14 +34,14 @@ export default function IncomePage() {
 
       {/* Main Content - Scrollable */}
       <div className="flex-1 overflow-y-auto bg-gray-200 p-4 pb-32">
-        
-        {/* Title */}
-        <div className="text-center my-6">
-          <h1 className="text-2xl font-semibold text-gray-800">Histórico de Receitas</h1>
-        </div>
+        <div className="max-w-md md:max-w-2xl mx-auto">
+          {/* Title */}
+          <div className="text-center my-6">
+            <h1 className="text-2xl font-semibold text-gray-800">Histórico de Receitas</h1>
+          </div>
 
-        {/* Transactions List */}
-        <div className="mb-6">          
+          {/* Transactions List */}
+          <div className="mb-6">          
           {incomeTransactions.length > 0 ? (
             <TransactionList 
               transactions={incomeTransactions}
@@ -53,6 +53,7 @@ export default function IncomePage() {
               <p className="text-sm mt-2">Adicione receitas através do dashboard principal!</p>
             </div>
           )}
+        </div>
         </div>
       </div>
 

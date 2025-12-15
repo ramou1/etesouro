@@ -49,7 +49,7 @@ export default function SettingsPage() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-4 pb-32">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md md:max-w-4xl mx-auto">
           <div className="text-center my-6">
             <h1 className="text-2xl font-semibold text-gray-800">
               Configurações
@@ -57,7 +57,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Tabs Navigation */}
-          <div className="grid grid-cols-2 gap-1 mb-8 bg-gray-100 rounded-lg p-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1 mb-8 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setActiveTab("groups")}
               className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
@@ -222,8 +222,9 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
         </button>
       </div>
 
-      {groups.map((group) => (
-        <div key={group.id} className="bg-white rounded-2xl p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {groups.map((group) => (
+          <div key={group.id} className="bg-white rounded-2xl p-4">
           <div className="flex justify-between items-start mb-3">
             <div>
               <h3 className="font-semibold text-gray-800">{group.title}</h3>
@@ -292,7 +293,8 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
             ))}
           </div>
         </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -319,7 +321,7 @@ function IncomeCategoriesSection({onNewIncomeCategory, onEditCategory, onDeleteC
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {incomeCategories.map((category) => (
           <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
             <div className="flex justify-between items-start">
@@ -372,7 +374,7 @@ function ExpenseCategoriesSection({onNewExpenseCategory, onEditCategory, onDelet
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {expenseCategories.map((category) => (
           <div key={category.id} className="bg-white rounded-2xl py-4 px-2">
             <div className="flex justify-between items-start">

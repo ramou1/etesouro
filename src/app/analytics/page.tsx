@@ -30,15 +30,15 @@ export default function AnalyticsPage() {
       {/* Main Content - Scrollable */}
       {/* bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 */}
       <div className="flex-1 overflow-y-auto bg-gray-200 p-4 pb-32">
-        
-        {/* Title */}
-        <div className="text-center my-6">
-          <h1 className="text-2xl font-semibold text-gray-800">Relatórios</h1>
-          <p className="text-sm text-gray-800 text-opacity-90">Análise dos seus dados financeiros</p>
-        </div>
+        <div className="max-w-md md:max-w-2xl mx-auto">
+          {/* Title */}
+          <div className="text-center my-6">
+            <h1 className="text-2xl font-semibold text-gray-800">Relatórios</h1>
+            <p className="text-sm text-gray-800 text-opacity-90">Análise dos seus dados financeiros</p>
+          </div>
 
-        {/* Cards de Estatísticas */}
-        <div className="space-y-4 mb-6">
+          {/* Cards de Estatísticas */}
+          <div className="space-y-4 mb-6">
           
           {/* Saldo Atual */}
           <div className="bg-white/50 rounded-2xl p-6">
@@ -156,6 +156,7 @@ export default function AnalyticsPage() {
               }
             </p>
           </div>
+        </div>
         </div>
       </div>
 
