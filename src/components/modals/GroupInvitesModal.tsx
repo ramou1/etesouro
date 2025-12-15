@@ -78,7 +78,7 @@ export default function GroupInvitesModal({ onClose }: GroupInvitesModalProps) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-gray-50 border-b border-gray-200 p-4 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">
               Convites de Grupos

@@ -141,6 +141,10 @@ export default function SettingsPage() {
             setEditingGroup(null);
           }}
           group={editingGroup || undefined}
+          onDelete={editingGroup ? () => {
+            setDeletingGroup(editingGroup);
+            setEditingGroup(null);
+          } : undefined}
         />
       )}
 

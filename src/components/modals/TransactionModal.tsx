@@ -132,7 +132,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
       <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col">
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           {/* Cabeçalho Fixo */}
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0 bg-gray-50 rounded-t-2xl">
             <h2 className="text-xl font-bold text-gray-800">
               {type === 'income' ? 'Adicionar Receita' : 'Adicionar Despesa'}
             </h2>
@@ -279,7 +279,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
           </div>
 
           {/* Rodapé Fixo */}
-          <div className="flex space-x-3 p-6 pt-4 border-t border-gray-200 flex-shrink-0">
+          <div className="flex space-x-3 p-4 border-t border-gray-200 flex-shrink-0 bg-gray-50 rounded-b-2xl">
             <button
               type="button"
               onClick={onClose}
