@@ -13,7 +13,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
 import { getUserData, saveUserData } from '@/lib/firebase/user';
 import { getCombinedCategories, getCombinedGroups, getCombinedTransactions } from '@/lib/firebase/dataHelpers';
-import { saveTransaction } from '@/lib/firebase/transactions';
+import { saveTransaction, deleteTransaction } from '@/lib/firebase/transactions';
 
 interface AppContextType {
   user: User | null;
@@ -25,7 +25,7 @@ interface AppContextType {
   expenseCategories: Category[];
   reloadCategoriesAndGroups: () => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
-  removeTransaction: (id: string) => void;
+  removeTransaction: (id: string) => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (name: string, email: string, password: string, allowGroupInvites?: boolean) => Promise<{ success: boolean; error?: string }>;
@@ -255,7 +255,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeTransaction = (id: string) => {
+  const removeTransaction = async (id: string) => {
+    // Se houver usuário, deletar no Firestore
+    if (user?.id) {
+      try {
+        const firestoreResult = await deleteTransaction(id, user.id);
+        
+        if (!firestoreResult.success) {
+          console.error('Erro ao deletar transação no Firestore:', firestoreResult.error);
+          // Continuar mesmo com erro, para não bloquear a UI
+        }
+      } catch (error) {
+        console.error('Erro ao deletar transação:', error);
+        // Continuar mesmo com erro
+      }
+    }
+
+    // Remover localmente
     setFinancialData(prev => {
       const filteredTransactions = prev.transactions.filter(t => t.id !== id);
       const totalIncome = filteredTransactions

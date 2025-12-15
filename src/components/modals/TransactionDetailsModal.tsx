@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { X, Calendar, User, DollarSign, ArrowUp, ArrowDown, LayoutList } from 'lucide-react';
+import { X, Calendar, User, DollarSign, ArrowUp, ArrowDown, LayoutList, Trash2 } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 
 interface TransactionDetailsModalProps {
   transaction: Transaction | null;
@@ -10,6 +12,10 @@ interface TransactionDetailsModalProps {
 }
 
 export default function TransactionDetailsModal({ transaction, onClose }: TransactionDetailsModalProps) {
+  const { removeTransaction } = useApp();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   if (!transaction) return null;
 
   const formatDate = (date: Date) => {
@@ -20,6 +26,22 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  };
+
+  const handleDelete = async () => {
+    if (!transaction) return;
+    
+    setIsDeleting(true);
+    try {
+      await removeTransaction(transaction.id);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao deletar transação:', error);
+      alert('Erro ao deletar transação');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   return (
@@ -74,7 +96,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
               <LayoutList className="text-gray-400" size={20} />
               <div>
                 <p className="text-sm text-gray-500">Categoria</p>
-                <p className="font-semibold text-gray-800">{transaction.category}</p>
+                <p className="font-semibold text-gray-800">{transaction.category || 'Nenhuma'}</p>
               </div>
             </div>
 
@@ -104,13 +126,61 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-          >
-            Fechar
-          </button>
+        <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
+          {!showDeleteConfirm ? (
+            <>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 size={18} />
+                Excluir Transação
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                Fechar
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
+                <p className="text-sm text-red-800 font-medium mb-2">
+                  Tem certeza que deseja excluir esta transação?
+                </p>
+                <p className="text-xs text-red-600">
+                  Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors hover:bg-gray-50"
+                  disabled={isDeleting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      Excluindo...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={18} />
+                      Confirmar Exclusão
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

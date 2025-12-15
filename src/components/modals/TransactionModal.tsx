@@ -60,7 +60,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
         type,
         amount: numericAmount,
         responsible: responsibleMember,
-        category: selectedCategory || categories[0]?.title || 'Outros',
+        category: selectedCategory || '',
         receipt: receiptUrl, // URL do comprovante após upload
         description: description || (type === 'income' ? 'Receita' : 'Despesa'),
       });
@@ -203,9 +203,20 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Categoria
+              Categoria (opcional)
             </label>
             <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('')}
+                className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                  selectedCategory === ''
+                    ? `border-yellow-500 text-yellow-500`
+                    : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Nenhuma
+              </button>
               {categories.map(category => (
                 <button
                   key={category.id}

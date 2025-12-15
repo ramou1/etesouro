@@ -50,11 +50,9 @@ export default function TransactionList({ transactions, onTransactionClick }: Tr
             }`}>
               {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
             </p>
-            {transaction.category && (
-              <p className="bg-gray-300 text-gray-800 text-xs mt-1 px-3 py-1 rounded-full text-center">
-                {transaction.category}
-              </p>
-            )}
+            <p className="bg-gray-300 text-gray-800 text-xs mt-1 px-3 py-1 rounded-full text-center">
+              {transaction.category || ''}
+            </p>
           </div>
         </div>
       ))}
