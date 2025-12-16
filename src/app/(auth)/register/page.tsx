@@ -58,13 +58,15 @@ export default function RegisterPage() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Image
-              src="/images/logo01.png"
-              alt="eTE$OURO Logo"
-              width={160}
-              height={50}
-              className="h-12 w-auto"
-            />
+            <Link href="/">
+              <Image
+                src="/images/logo01.png"
+                alt="eTE$OURO Logo"
+                width={160}
+                height={50}
+                className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
           </div>
           <h2 className="text-sm text-gray-600">Crie sua conta gratuita</h2>
         </div>
