@@ -66,13 +66,13 @@ export default function Header() {
       localStorage.removeItem('user');
       // Fechar dropdown
       setShowDropdown(false);
-      // Forçar reload para garantir que o estado seja limpo completamente
-      window.location.href = '/login';
+      // Redirecionar para a página raiz
+      window.location.href = '/';
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       // Mesmo com erro, tentar redirecionar e limpar
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
 

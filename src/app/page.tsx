@@ -1,8 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useApp } from '@/context/AppContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -18,35 +15,6 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const router = useRouter();
-  const { user } = useApp();
-  const [isChecking, setIsChecking] = useState(true);
-
-  useEffect(() => {
-    // Aguardar um pouco para verificar autenticação
-    const timer = setTimeout(() => {
-      setIsChecking(false);
-      // Se o usuário estiver autenticado, redireciona para dashboard
-      if (user?.isAuthenticated) {
-        router.push('/dashboard');
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [user, router]);
-
-  // Se estiver verificando ou usuário autenticado, mostrar loading
-  if (isChecking || user?.isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-black mb-4">eTe$ouro</h1>
-          <div className="animate-pulse text-black">Carregando...</div>
-        </div>
-      </div>
-    );
-  }
-
   // Landing Page
   return (
     <div className="min-h-screen bg-white">
