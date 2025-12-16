@@ -82,8 +82,8 @@ export default function HomePage() {
               {/* Right Column - Image */}
               <div className="rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/screenshot-web.png"
-                  alt="Screenshot da versão web do eTE$OURO"
+                  src="/images/mockup-projeto.png"
+                  alt="Mockups de versões mobile e web do eTE$OURO"
                   width={800}
                   height={600}
                   className="w-full h-auto"
