@@ -35,6 +35,8 @@ export default function NewGroupModal({ onClose, group, onDelete }: NewGroupModa
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<GroupMember[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [memberBeingAdded, setMemberBeingAdded] = useState<GroupMember | null>(null);
+  const [memberContributesIncome, setMemberContributesIncome] = useState(false);
 
   // Buscar usuários no Firestore quando o termo de busca mudar
   useEffect(() => {
@@ -86,8 +88,27 @@ export default function NewGroupModal({ onClose, group, onDelete }: NewGroupModa
     if (selectedMembers.some(m => m.id === member.id)) {
       setSelectedMembers(selectedMembers.filter(m => m.id !== member.id));
     } else {
-      setSelectedMembers([...selectedMembers, member]);
+      // Ao invés de adicionar diretamente, mostrar formulário para configurar
+      setMemberBeingAdded(member);
+      setMemberContributesIncome(false);
     }
+  };
+
+  const confirmAddMember = () => {
+    if (memberBeingAdded) {
+      const memberToAdd: GroupMember = {
+        ...memberBeingAdded,
+        contributesIncome: memberContributesIncome
+      };
+      setSelectedMembers([...selectedMembers, memberToAdd]);
+      setMemberBeingAdded(null);
+      setMemberContributesIncome(false);
+    }
+  };
+
+  const cancelAddMember = () => {
+    setMemberBeingAdded(null);
+    setMemberContributesIncome(false);
   };
 
   const addManualMember = () => {
@@ -310,22 +331,71 @@ export default function NewGroupModal({ onClose, group, onDelete }: NewGroupModa
                   {isSearching ? (
                     <p className="text-sm text-gray-500 text-center py-4">Buscando...</p>
                   ) : filteredMembers.length > 0 ? (
-                    filteredMembers.map(member => (
-                      <div
-                        key={member.id}
-                        onClick={() => toggleMember(member)}
-                        className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                      >
-                        <Avatar 
-                          name={member.name}
-                          size={40}
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-800">{member.name}</p>
-                          <p className="text-xs text-gray-500">{member.email}</p>
+                    filteredMembers.map(member => {
+                      const isBeingAdded = memberBeingAdded?.id === member.id;
+                      return (
+                        <div key={member.id}>
+                          {isBeingAdded ? (
+                            // Formulário para configurar antes de adicionar
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Avatar 
+                                  name={member.name}
+                                  size={40}
+                                />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-800">{member.name}</p>
+                                  <p className="text-xs text-gray-500">{member.email}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`contributes-${member.id}`}
+                                  checked={memberContributesIncome}
+                                  onChange={(e) => setMemberContributesIncome(e.target.checked)}
+                                  className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500"
+                                />
+                                <label htmlFor={`contributes-${member.id}`} className="text-xs text-gray-700">
+                                  Contribui com renda
+                                </label>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={cancelAddMember}
+                                  className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+                                >
+                                  Cancelar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={confirmAddMember}
+                                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm"
+                                >
+                                  Adicionar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            // Item da lista normal
+                            <div
+                              onClick={() => toggleMember(member)}
+                              className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                            >
+                              <Avatar 
+                                name={member.name}
+                                size={40}
+                              />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-800">{member.name}</p>
+                                <p className="text-xs text-gray-500">{member.email}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : searchTerm.trim() && searchTerm.trim().length >= 2 ? (
                     <p className="text-sm text-gray-500 text-center py-4">Nenhum membro encontrado</p>
                   ) : (
@@ -421,7 +491,7 @@ export default function NewGroupModal({ onClose, group, onDelete }: NewGroupModa
               disabled={isLoading || !title}
               className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (isEditMode ? 'Salvando...' : 'Criando...') : (isEditMode ? 'Salvar Alterações' : 'Criar Grupo')}
+              {isLoading ? (isEditMode ? 'Salvando...' : 'Criando...') : (isEditMode ? 'Salvar' : 'Criar Grupo')}
             </button>
           </div>
         </form>
