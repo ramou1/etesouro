@@ -58,7 +58,7 @@ export default function ExpensePage() {
       </div>
 
       {/* Total Fixo na parte inferior */}
-      <div className="fixed bottom-24 left-0 right-0 z-10">
+      <div className="fixed bottom-24 left-0 right-0 z-0">
         <div className="backdrop-blur-md rounded-t-2xl p-4">
           <div className="text-center">
             <p className="text-gray-600 text-sm">Total de Despesas</p>

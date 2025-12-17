@@ -11,7 +11,7 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
-import { getUserData, saveUserData } from '@/lib/firebase/user';
+import { getUserData, saveUserData, updateUserName } from '@/lib/firebase/user';
 import { getCombinedCategories, getCombinedGroups, getCombinedTransactions } from '@/lib/firebase/dataHelpers';
 import { saveTransaction, deleteTransaction } from '@/lib/firebase/transactions';
 
@@ -29,6 +29,7 @@ interface AppContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (name: string, email: string, password: string, allowGroupInvites?: boolean) => Promise<{ success: boolean; error?: string }>;
+  updateUserProfile: (name: string) => Promise<{ success: boolean; error?: string }>;
   selectedParticipants: string[];
   toggleParticipant: (participantId: string) => void;
   getFilteredFinancialData: () => FinancialData;
@@ -345,6 +346,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateUserProfile = async (name: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user?.id) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      // Atualizar no Firebase se estiver configurado
+      if (auth) {
+        const result = await updateUserName(user.id, name.trim());
+        if (result.success) {
+          // Atualizar estado local
+          const updatedUser = { ...user, name: name.trim() };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        return result;
+      } else {
+        // Modo mock: apenas atualizar localStorage
+        const updatedUser = { ...user, name: name.trim() };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar perfil';
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const getFilteredFinancialData = (): FinancialData => {
     // Se nenhum participante está desabilitado, retorna os dados completos do grupo ativo
     if (selectedParticipants.length === 0) {
@@ -387,6 +418,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         login, 
         logout,
         register,
+        updateUserProfile,
         addTransaction,
         removeTransaction,
         selectedParticipants,

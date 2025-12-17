@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from "@/context/AppContext";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import { LogOut, Bell } from 'lucide-react';
+import { LogOut, Bell, User } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import GroupInvitesModal from '@/components/modals/GroupInvitesModal';
+import ProfileModal from '@/components/modals/ProfileModal';
 import { getPendingInvites } from '@/lib/firebase/groups';
 
 export default function Header() {
@@ -14,6 +15,7 @@ export default function Header() {
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showInvitesModal, setShowInvitesModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [pendingInvitesCount, setPendingInvitesCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const invitesRef = useRef<HTMLDivElement>(null);
@@ -128,15 +130,19 @@ export default function Header() {
             {/* Dropdown Menu */}
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-800 truncate mb-1">
-                    {user.name || user.email?.split('@')[0] || 'Usuário'}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
+                <button
+                  onClick={() => {
+                    setShowProfileModal(true);
+                    setShowDropdown(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <User size={18} className="text-gray-500" />
+                  <span>Perfil</span>
+                </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors mt-2"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <LogOut size={18} className="text-gray-500" />
                   <span>Sair</span>
@@ -160,6 +166,15 @@ export default function Header() {
                   }
                 });
               }
+            }}
+          />
+        )}
+
+        {/* Modal de Perfil */}
+        {showProfileModal && (
+          <ProfileModal
+            onClose={() => {
+              setShowProfileModal(false);
             }}
           />
         )}

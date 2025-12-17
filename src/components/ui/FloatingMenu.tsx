@@ -43,7 +43,7 @@ export default function FloatingMenu() {
   };
 
   return (
-    <div className="fixed bottom-12 right-4 z-50" ref={menuRef}>
+    <div className="fixed bottom-12 right-4 z-0" ref={menuRef}>
       {/* Menu Items - Aparecem acima do botão quando aberto */}
       {isOpen && (
         <div className="absolute bottom-14 right-0 mb-2 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 min-w-[200px] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">

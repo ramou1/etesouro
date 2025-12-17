@@ -205,7 +205,7 @@ export default function DashboardPage() {
 
       {/* Total Fixo na parte inferior - Só mostrar se houver grupos */}
       {hasGroups && (
-        <div className="fixed bottom-20 left-0 right-0 z-10">
+        <div className="fixed bottom-20 left-0 right-0 z-0">
           <div className="backdrop-blur-md mx-4 rounded-t-2xl p-4">
             <div className={`text-2xl font-bold text-black text-center`}>
               {filteredFinancialData.balance >= 0 ? '+' : ''} {formatCurrency(filteredFinancialData.balance)}

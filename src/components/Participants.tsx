@@ -17,7 +17,7 @@ export default function Participants() {
     }
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-yellow-300 py-2 px-4 z-20">
+        <div className="fixed bottom-0 left-0 right-0 bg-yellow-300 py-2 px-4 z-0">
             <div className="flex justify-center space-x-4 -mt-5">
                 {activeGroup.members.map((participant) => (
                     <button
