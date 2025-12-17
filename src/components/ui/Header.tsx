@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from "@/context/AppContext";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import { LogOut, Bell, User } from 'lucide-react';
+import { LogOut, UserPlus, User } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import GroupInvitesModal from '@/components/modals/GroupInvitesModal';
 import ProfileModal from '@/components/modals/ProfileModal';
@@ -102,7 +102,7 @@ export default function Header() {
                 className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
                 title="Convites de grupos"
               >
-                <Bell size={20} className="text-gray-700" />
+                <UserPlus size={20} className="text-gray-700" />
                 {pendingInvitesCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {pendingInvitesCount > 9 ? '9+' : pendingInvitesCount}
