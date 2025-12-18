@@ -285,6 +285,63 @@ export const updateTransaction = async (
   }
 };
 
+// Deletar todas as transações de um grupo
+export const deleteGroupTransactions = async (
+  groupId: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  const firestoreDb = db;
+
+  try {
+    // Buscar o grupo para obter todos os membros
+    const groupRef = doc(firestoreDb, 'users', userId, 'groups', groupId);
+    const groupDoc = await getDoc(groupRef);
+    
+    if (!groupDoc.exists()) {
+      return { success: true }; // Grupo não existe, não há transações para deletar
+    }
+
+    const groupData = groupDoc.data();
+    const members = groupData.members || [];
+
+    // Buscar todas as transações do grupo para cada membro
+    const deletePromises = members.map(async (member: { id: string }) => {
+      try {
+        const transactionsRef = collection(firestoreDb, 'users', member.id, 'transactions');
+        const q = query(transactionsRef, where('groupId', '==', groupId));
+        const querySnapshot = await getDocs(q);
+        
+        // Deletar cada transação encontrada
+        const deleteTransactionPromises = querySnapshot.docs.map(async (docSnap) => {
+          await deleteDoc(docSnap.ref);
+        });
+        
+        await Promise.all(deleteTransactionPromises);
+      } catch (error) {
+        console.error(`Erro ao deletar transações do grupo para membro ${member.id}:`, error);
+        // Continuar mesmo se houver erro em algum membro
+      }
+    });
+
+    await Promise.allSettled(deletePromises);
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao deletar transações do grupo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao deletar transações do grupo';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
 // Deletar transação do Firestore
 // Se a transação pertence a um grupo, deleta de todos os membros
 export const deleteTransaction = async (

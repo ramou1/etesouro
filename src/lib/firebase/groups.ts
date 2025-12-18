@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 import { Group, GroupMember } from '@/types';
+import { deleteGroupTransactions } from './transactions';
 
 export interface GroupData {
   id: string;
@@ -239,6 +240,15 @@ export const deleteGroup = async (
   }
 
   try {
+    // Primeiro, deletar todas as transações do grupo
+    const deleteTransactionsResult = await deleteGroupTransactions(groupId, userId);
+    
+    if (!deleteTransactionsResult.success) {
+      console.error('Erro ao deletar transações do grupo:', deleteTransactionsResult.error);
+      // Continuar mesmo se houver erro ao deletar transações
+    }
+
+    // Depois, deletar o grupo
     const groupRef = doc(db, 'users', userId, 'groups', groupId);
     await deleteDoc(groupRef);
 

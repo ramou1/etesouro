@@ -40,8 +40,7 @@ export default function DeleteConfirmationModal({
           </p>
 
           <p className="text-sm text-red-600">
-            ⚠️ Esta ação não pode ser desfeita. Todas as transações e dados
-            deste grupo serão perdidos.
+            Esta ação não pode ser desfeita. Todas as transações e dados deste grupo serão perdidos.
           </p>
         </div>
 
