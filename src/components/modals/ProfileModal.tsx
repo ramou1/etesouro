@@ -183,7 +183,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
             <button
               type="submit"
               disabled={isLoading || !name.trim() || name.trim() === user?.name}
-              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 'Salvando...'

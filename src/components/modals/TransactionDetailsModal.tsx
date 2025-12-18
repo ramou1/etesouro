@@ -288,7 +288,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
             <div className="flex gap-3">
               <button
                 onClick={handleCancelEdit}
-                className="border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors hover:bg-gray-50"
+                className="border border-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors hover:bg-gray-50 text-sm"
                 disabled={isSaving}
               >
                 Cancelar
@@ -296,7 +296,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
               >
                 {isSaving ? (
                   'Salvando...'
@@ -312,21 +312,21 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
               >
                 <Trash2 size={18} />
                 Excluir
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
               >
                 <Edit2 size={18} />
                 Editar
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
               >
                 Fechar
               </button>
@@ -344,7 +344,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="border border-gray-300 text-gray-700 font-semibold p-3 rounded-lg transition-colors hover:bg-gray-50"
+                  className="border border-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors hover:bg-gray-50 text-sm"
                   disabled={isDeleting}
                 >
                   Cancelar
@@ -352,7 +352,7 @@ export default function TransactionDetailsModal({ transaction, onClose }: Transa
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="bg-red-500 hover:bg-red-600 text-white font-semibold p-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
                 >
                   {isDeleting ? (
                     'Excluindo...'

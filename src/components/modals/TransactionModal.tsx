@@ -290,7 +290,7 @@ export default function TransactionModal({ type, onClose }: TransactionModalProp
             <button
               type="submit"
               disabled={isLoading || !amount}
-              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Adicionando...' : 'Adicionar'}
             </button>

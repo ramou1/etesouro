@@ -53,7 +53,7 @@ export default function ConfirmDeleteModal({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Excluindo...' : 'Excluir'}
           </button>
