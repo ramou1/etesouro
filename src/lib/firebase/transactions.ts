@@ -158,6 +158,7 @@ export const getUserTransactions = async (
       const data = docSnap.data();
       // Converter Timestamp do Firestore para Date
       const date = data.date instanceof Timestamp ? data.date.toDate() : new Date(data.date);
+      const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : undefined);
       
       transactions.push({
         id: data.id,
@@ -170,6 +171,7 @@ export const getUserTransactions = async (
         userId: data.userId,
         receipt: data.receipt,
         responsible: data.responsible,
+        updatedAt: updatedAt,
       });
     });
 

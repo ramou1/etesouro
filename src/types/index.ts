@@ -24,6 +24,7 @@ export interface Transaction {
   userId: string;
   receipt?: string; 
   responsible: GroupMember;
+  updatedAt?: Date;
 }
 
 export interface FinancialData {

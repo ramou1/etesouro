@@ -13,7 +13,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
 import { getUserData, saveUserData, updateUserName } from '@/lib/firebase/user';
 import { getCombinedCategories, getCombinedGroups, getCombinedTransactions } from '@/lib/firebase/dataHelpers';
-import { saveTransaction, deleteTransaction } from '@/lib/firebase/transactions';
+import { saveTransaction, deleteTransaction, updateTransaction as updateTransactionFirebase } from '@/lib/firebase/transactions';
 
 interface AppContextType {
   user: User | null;
@@ -25,6 +25,7 @@ interface AppContextType {
   expenseCategories: Category[];
   reloadCategoriesAndGroups: () => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  updateTransaction: (id: string, transaction: Partial<Omit<Transaction, 'id'>>) => Promise<void>;
   removeTransaction: (id: string) => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -336,6 +337,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateTransaction = async (id: string, transaction: Partial<Omit<Transaction, 'id'>>) => {
+    // Se houver usuário, atualizar no Firestore
+    if (user?.id) {
+      try {
+        const firestoreResult = await updateTransactionFirebase(id, transaction, user.id);
+        
+        if (!firestoreResult.success) {
+          console.error('Erro ao atualizar transação no Firestore:', firestoreResult.error);
+          // Continuar mesmo com erro, para não bloquear a UI
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar transação:', error);
+        // Continuar mesmo com erro
+      }
+    }
+
+    // Atualizar localmente
+    setFinancialData(prev => {
+      const updatedTransactions = prev.transactions.map(t => {
+        if (t.id === id) {
+          return {
+            ...t,
+            ...transaction,
+            updatedAt: new Date(),
+          };
+        }
+        return t;
+      });
+
+      const totalIncome = updatedTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const totalExpenses = updatedTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return {
+        transactions: updatedTransactions,
+        totalIncome,
+        totalExpenses,
+        balance: totalIncome - totalExpenses,
+      };
+    });
+  };
+
   const toggleParticipant = (participantId: string) => {
     setSelectedParticipants(prev => {
       if (prev.includes(participantId)) {
@@ -420,6 +466,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         register,
         updateUserProfile,
         addTransaction,
+        updateTransaction,
         removeTransaction,
         selectedParticipants,
         toggleParticipant,
