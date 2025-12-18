@@ -3,6 +3,7 @@
 import { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowUp, ArrowDown, Calendar } from 'lucide-react';
+import Avatar from '@/components/ui/Avatar';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -28,12 +29,24 @@ export default function TransactionList({ transactions, onTransactionClick }: Tr
         >
           <div className="flex items-center space-x-3">
             {transaction.type === 'income' ? (
-              <div className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
-                <ArrowUp className="text-green-600" size={16} />
+              <div className="relative">
+                <Avatar 
+                  name={transaction.responsible?.name || 'Usuário'}
+                  size={32}
+                />
+                <div className="absolute -top-1 -left-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <ArrowUp className="text-white" size={10} />
+                </div>
               </div>
             ) : (
-              <div className="w-8 h-8 bg-red-200 rounded-full flex items-center justify-center">
-                <ArrowDown className="text-red-600" size={16} />
+              <div className="relative">
+                <Avatar 
+                  name={transaction.responsible?.name || 'Usuário'}
+                  size={32}
+                />
+                <div className="absolute -top-1 -left-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <ArrowDown className="text-white" size={10} />
+                </div>
               </div>
             )}
             <div>
