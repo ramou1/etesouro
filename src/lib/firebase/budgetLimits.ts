@@ -4,10 +4,9 @@ import {
   doc, 
   setDoc, 
   getDocs,
-  query,
-  where,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  FieldValue
 } from 'firebase/firestore';
 import { db } from './config';
 import { BudgetLimit } from '@/types';
@@ -21,8 +20,8 @@ export interface BudgetLimitData {
   type: 'essential' | 'fixed' | 'reserve' | 'sporadic' | 'uncategorized';
   groupId: string;
   categoryIds?: string[];
-  createdAt?: Timestamp | null;
-  updatedAt?: Timestamp | null;
+  createdAt?: Timestamp | FieldValue | null;
+  updatedAt?: Timestamp | FieldValue | null;
 }
 
 // Limites padrão que serão criados para cada grupo
@@ -84,7 +83,7 @@ export const createDefaultBudgetLimits = async (
   try {
     const limitsRef = collection(db, 'users', userId, 'groups', groupId, 'budgetLimits');
     
-    const createPromises = DEFAULT_BUDGET_LIMITS.map(async (limit, index) => {
+    const createPromises = DEFAULT_BUDGET_LIMITS.map(async (limit) => {
       const limitId = `limit-${limit.type}-${groupId}`;
       const limitRef = doc(limitsRef, limitId);
       

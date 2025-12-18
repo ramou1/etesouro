@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { Group, Category, BudgetLimit } from '@/types';
+import { BudgetLimit } from '@/types';
 import { getGroupBudgetLimits, saveGroupBudgetLimits } from '@/lib/firebase/budgetLimits';
 
 interface BudgetLimitsConfigModalProps {
@@ -53,7 +53,6 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
   const [selectedGroupId, setSelectedGroupId] = useState<string>(activeGroup?.id || '');
   const [limits, setLimits] = useState<Record<string, Omit<BudgetLimit, 'id' | 'groupId'>>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingLimits, setIsLoadingLimits] = useState(false);
 
   // Carregar limites salvos quando um grupo é selecionado
   useEffect(() => {
@@ -71,7 +70,6 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
         return;
       }
 
-      setIsLoadingLimits(true);
       try {
         const result = await getGroupBudgetLimits(selectedGroupId, user.id);
         if (result.success && result.data) {
@@ -121,8 +119,6 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
           };
         });
         setLimits(initialLimits);
-      } finally {
-        setIsLoadingLimits(false);
       }
     };
 
