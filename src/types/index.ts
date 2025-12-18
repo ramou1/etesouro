@@ -66,5 +66,7 @@ export interface BudgetLimit {
   description: string;
   percentage: number;
   color: string;
-  type: 'essential' | 'fixed' | 'reserve' | 'sporadic';
+  type: 'essential' | 'fixed' | 'reserve' | 'sporadic' | 'uncategorized';
+  groupId?: string;
+  categoryIds?: string[]; // IDs das categorias de saída associadas a este limite
 }

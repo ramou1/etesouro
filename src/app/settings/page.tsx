@@ -8,6 +8,7 @@ import NewIncomeCategoryModal from "@/components/modals/NewIncomeCategoryModal";
 import NewExpenseCategoryModal from "@/components/modals/NewExpenseCategoryModal";
 import DeleteCategoryModal from "@/components/modals/DeleteCategoryModal";
 import DeleteGroupModal from "@/components/modals/DeleteGroupModal";
+import BudgetLimitsConfigModal from "@/components/modals/BudgetLimitsConfigModal";
 import {
   MOCK_BUDGET_LIMITS,
 } from "@/data/mockData";
@@ -41,6 +42,7 @@ export default function SettingsPage() {
   const [deletingGroup, setDeletingGroup] = useState<Group | null>(null);
   const [deletingIncomeCategory, setDeletingIncomeCategory] = useState<Category | null>(null);
   const [deletingExpenseCategory, setDeletingExpenseCategory] = useState<Category | null>(null);
+  const [showBudgetLimitsModal, setShowBudgetLimitsModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 bg-gray-200 flex flex-col">
@@ -126,7 +128,9 @@ export default function SettingsPage() {
               onDeleteCategory={(category) => setDeletingExpenseCategory(category)}
             />
           )}
-          {activeTab === "limits" && <BudgetLimitsSection />}
+          {activeTab === "limits" && (
+            <BudgetLimitsSection onConfigure={() => setShowBudgetLimitsModal(true)} />
+          )}
         </div>
       </div>
 
@@ -200,6 +204,13 @@ export default function SettingsPage() {
           onConfirm={async () => {
             setDeletingExpenseCategory(null);
           }}
+        />
+      )}
+
+      {/* Budget Limits Config Modal */}
+      {showBudgetLimitsModal && (
+        <BudgetLimitsConfigModal
+          onClose={() => setShowBudgetLimitsModal(false)}
         />
       )}
     </div>
@@ -412,21 +423,46 @@ function ExpenseCategoriesSection({onNewExpenseCategory, onEditCategory, onDelet
 }
 
 // Componente para seção de Limites de Orçamento
-function BudgetLimitsSection() {
+function BudgetLimitsSection({ onConfigure }: { onConfigure: () => void }) {
+  const { activeGroup } = useApp();
+  
+  // Adicionar limite "Sem Categoria" à lista
+  const allLimits = [
+    ...MOCK_BUDGET_LIMITS,
+    {
+      id: '5',
+      name: 'Sem Categoria',
+      description: 'Despesas sem categoria escolhida',
+      percentage: 0,
+      color: 'bg-gray-100 text-gray-600',
+      type: 'uncategorized' as const
+    }
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Limites de Orçamento
-        </h2>
-        <button className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Limites de Orçamento
+          </h2>
+          {activeGroup && (
+            <p className="text-sm text-gray-600 mt-1">
+              Grupo: {activeGroup.title}
+            </p>
+          )}
+        </div>
+        <button 
+          onClick={onConfigure}
+          className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors"
+        >
           <SettingsIcon size={16} />
           Configurar
         </button>
       </div>
 
       <div className="space-y-3">
-        {MOCK_BUDGET_LIMITS.map((limit) => (
+        {allLimits.map((limit) => (
           <div key={limit.id} className="bg-white rounded-2xl p-4">
             <div className="flex justify-between items-start mb-3">
               <div>

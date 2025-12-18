@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 import { Group, GroupMember } from '@/types';
+import { createDefaultBudgetLimits } from './budgetLimits';
 import { deleteGroupTransactions } from './transactions';
 
 export interface GroupData {
@@ -62,6 +63,14 @@ export const saveGroup = async (
     };
 
     await setDoc(groupRef, groupData);
+
+    // Criar limites de orçamento padrão para o grupo
+    try {
+      await createDefaultBudgetLimits(groupId, userId);
+    } catch (error) {
+      console.error('Erro ao criar limites padrão do grupo:', error);
+      // Não falhar a criação do grupo se houver erro ao criar limites
+    }
 
     // Criar convites para cada membro (exceto o criador)
     // Buscar dados do criador para incluir no convite
