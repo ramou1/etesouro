@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import Image from 'next/image';
 import { MOCK_INCOME_CATEGORIES, MOCK_EXPENSE_CATEGORIES } from '@/data/mockData';
-import { Category } from '@/types';
 import { saveMultipleCategories } from '@/lib/firebase/categories';
 
 export default function SelectCategoriesPage() {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Check, XCircle } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { getPendingInvites, acceptGroupInvite, rejectGroupInvite, GroupInvite } from '@/lib/firebase/groups';
@@ -16,11 +16,7 @@ export default function GroupInvitesModal({ onClose }: GroupInvitesModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [processingInviteId, setProcessingInviteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadInvites();
-  }, [user?.id]);
-
-  const loadInvites = async () => {
+  const loadInvites = useCallback(async () => {
     if (!user?.id) return;
     
     setIsLoading(true);
@@ -34,7 +30,11 @@ export default function GroupInvitesModal({ onClose }: GroupInvitesModalProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadInvites();
+  }, [loadInvites]);
 
   const handleAccept = async (inviteId: string) => {
     if (!user?.id) return;

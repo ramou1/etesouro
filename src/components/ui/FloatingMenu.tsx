@@ -47,7 +47,7 @@ export default function FloatingMenu() {
       {/* Menu Items - Aparecem acima do botão quando aberto */}
       {isOpen && (
         <div className="absolute bottom-14 right-0 mb-2 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 min-w-[200px] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-          {menuItems.map((item, index) => {
+          {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (

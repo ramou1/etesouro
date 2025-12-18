@@ -84,7 +84,7 @@ export default function DeleteGroupModal({ group, onClose, onConfirm }: DeleteGr
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
             <p className="text-gray-600 mb-2">
-              Tem certeza que deseja excluir o grupo <span className="font-semibold text-gray-800">"{group.title}"</span>?
+              Tem certeza que deseja excluir o grupo <span className="font-semibold text-gray-800">{group.title}</span>?
             </p>
             <p className="text-sm text-red-600 mb-4">
               Esta ação não pode ser desfeita. Todas as transações associadas a este grupo serão excluídas permanentemente.
