@@ -313,12 +313,18 @@ function IncomeCategoriesSection({onNewIncomeCategory, onEditCategory, onDeleteC
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Categorias de Entrada
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Categorias de Entrada
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">
+            {incomeCategories.length}/10 categorias
+          </p>
+        </div>
         <button
           onClick={onNewIncomeCategory}
-          className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
+          disabled={incomeCategories.length >= 10}
+          className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={16} />
           Nova Categoria
@@ -331,7 +337,7 @@ function IncomeCategoriesSection({onNewIncomeCategory, onEditCategory, onDeleteC
             <div className="flex justify-between items-start">
               <span
                 className="px-3 py-1 rounded-full text-xs font-medium text-gray-700"
-                style={{ backgroundColor: category.color || "#9CA3AF" }}>
+                style={{ backgroundColor: category.color || "#E5E7EB" }}>
                 {category.title}
               </span>
               <div className="flex gap-1">
@@ -366,12 +372,18 @@ function ExpenseCategoriesSection({onNewExpenseCategory, onEditCategory, onDelet
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Categorias de Saída
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Categorias de Saída
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">
+            {expenseCategories.length}/10 categorias
+          </p>
+        </div>
         <button
           onClick={onNewExpenseCategory}
-          className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors"
+          disabled={expenseCategories.length >= 10}
+          className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={16} />
           Nova Categoria
@@ -384,7 +396,7 @@ function ExpenseCategoriesSection({onNewExpenseCategory, onEditCategory, onDelet
             <div className="flex justify-between items-start">
                 <span
                 className="px-3 py-1 rounded-full text-xs font-medium text-gray-800"
-                style={{ backgroundColor: category.color || "#9CA3AF" }}>
+                style={{ backgroundColor: category.color || "#E5E7EB" }}>
                 {category.title}
               </span>
               <div className="flex gap-1">

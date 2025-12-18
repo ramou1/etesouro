@@ -13,7 +13,7 @@ interface NewIncomeCategoryModalProps {
 }
 
 export default function NewIncomeCategoryModal({ onClose, category }: NewIncomeCategoryModalProps) {
-  const { user, reloadCategoriesAndGroups } = useApp();
+  const { user, reloadCategoriesAndGroups, incomeCategories } = useApp();
   const [title, setCategoryTitle] = useState(category?.title || '');
   const [color, setColor] = useState(category?.color || '');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,8 +35,15 @@ export default function NewIncomeCategoryModal({ onClose, category }: NewIncomeC
       return;
     }
 
+    // Verificar limite de 10 categorias (apenas na criação, não na edição)
+    if (!isEditMode && incomeCategories.length >= 10) {
+      alert('Você já atingiu o limite máximo de 10 categorias de entrada. Exclua uma categoria antes de criar uma nova.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const selectedColor = color || '#6B7280'; // Cor padrão se nenhuma for selecionada
+      const selectedColor = color || '#E5E7EB'; // Cor padrão mais clara se nenhuma for selecionada
       
       let firestoreResult;
       if (isEditMode && category) {

@@ -132,19 +132,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user?.id) {
       // Se não há usuário, usar apenas dados mockados
       setGroups(MOCK_GROUPS);
-      setIncomeCategories(MOCK_INCOME_CATEGORIES);
-      setExpenseCategories(MOCK_EXPENSE_CATEGORIES);
+      // Ordenar categorias mockadas por título
+      const sortedMockIncome = [...MOCK_INCOME_CATEGORIES].sort((a, b) => 
+        a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })
+      );
+      const sortedMockExpense = [...MOCK_EXPENSE_CATEGORIES].sort((a, b) => 
+        a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })
+      );
+      setIncomeCategories(sortedMockIncome);
+      setExpenseCategories(sortedMockExpense);
       return;
     }
 
     try {
       // Carregar e combinar categorias de receitas
       const combinedIncomeCategories = await getCombinedCategories(user.id, 'income');
-      setIncomeCategories(combinedIncomeCategories);
+      // Ordenar por título em ordem crescente
+      const sortedIncomeCategories = [...combinedIncomeCategories].sort((a, b) => 
+        a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })
+      );
+      setIncomeCategories(sortedIncomeCategories);
 
       // Carregar e combinar categorias de despesas
       const combinedExpenseCategories = await getCombinedCategories(user.id, 'expense');
-      setExpenseCategories(combinedExpenseCategories);
+      // Ordenar por título em ordem crescente
+      const sortedExpenseCategories = [...combinedExpenseCategories].sort((a, b) => 
+        a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })
+      );
+      setExpenseCategories(sortedExpenseCategories);
 
       // Carregar e combinar grupos
       const combinedGroups = await getCombinedGroups(user.id);
