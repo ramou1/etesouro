@@ -31,8 +31,9 @@ export interface TransactionData {
   updatedAt?: Timestamp | null;
 }
 
-// Salvar nova transação no Firestore (como subcoleção do usuário)
-// Se a transação pertence a um grupo, salva em todos os membros do grupo
+// Salvar nova transação no Firestore
+// Se a transação pertence a um grupo, salva em groups/{groupId}/transactions
+// Se não pertence a um grupo, salva em users/{userId}/transactions
 export const saveTransaction = async (
   transaction: Omit<Transaction, 'id'>,
   userId: string
@@ -44,7 +45,6 @@ export const saveTransaction = async (
     };
   }
 
-  // Criar uma variável local para o TypeScript entender que db não é undefined
   const firestoreDb = db;
 
   try {
@@ -76,42 +76,12 @@ export const saveTransaction = async (
       updatedAt: serverTimestamp(),
     };
 
-    // Se a transação pertence a um grupo, buscar todos os membros e salvar em cada um
+    // Se a transação pertence a um grupo, salvar na subcoleção do grupo
     if (transaction.groupId) {
-      try {
-        // Buscar o grupo para obter a lista de membros
-        const groupRef = doc(firestoreDb, 'users', userId, 'groups', transaction.groupId);
-        const groupDoc = await getDoc(groupRef);
-        
-        if (groupDoc.exists()) {
-          const groupData = groupDoc.data();
-          const members = groupData.members || [];
-          
-          // Salvar a transação em todos os membros do grupo
-          const savePromises = members.map(async (member: { id: string }) => {
-            try {
-              const memberTransactionRef = doc(firestoreDb, 'users', member.id, 'transactions', transactionId);
-              await setDoc(memberTransactionRef, transactionData);
-            } catch (error) {
-              console.error(`Erro ao salvar transação para membro ${member.id}:`, error);
-              // Continuar mesmo se houver erro em algum membro
-            }
-          });
-          
-          await Promise.allSettled(savePromises);
-        } else {
-          // Se o grupo não existir, salvar apenas para o usuário atual
-          const transactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
-          await setDoc(transactionRef, transactionData);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar grupo para sincronização:', error);
-        // Se houver erro ao buscar o grupo, salvar apenas para o usuário atual
-        const transactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
-        await setDoc(transactionRef, transactionData);
-      }
+      const transactionRef = doc(firestoreDb, 'groups', transaction.groupId, 'transactions', transactionId);
+      await setDoc(transactionRef, transactionData);
     } else {
-      // Se não pertence a um grupo, salvar apenas para o usuário atual
+      // Se não pertence a um grupo, salvar na subcoleção do usuário
       const transactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
       await setDoc(transactionRef, transactionData);
     }
@@ -127,7 +97,9 @@ export const saveTransaction = async (
   }
 };
 
-// Buscar transações do usuário no Firestore (da subcoleção do usuário)
+// Buscar transações do Firestore
+// Se groupId for fornecido, busca de groups/{groupId}/transactions
+// Caso contrário, busca de users/{userId}/transactions
 export const getUserTransactions = async (
   userId: string, 
   groupId?: string
@@ -139,16 +111,20 @@ export const getUserTransactions = async (
     };
   }
 
-  // Criar uma variável local para o TypeScript entender que db não é undefined
   const firestoreDb = db;
 
   try {
-    // Buscar da subcoleção: users/{userId}/transactions
-    const transactionsRef = collection(firestoreDb, 'users', userId, 'transactions');
-    let q = query(transactionsRef, orderBy('date', 'desc'));
+    let transactionsRef;
+    let q;
     
     if (groupId) {
-      q = query(transactionsRef, where('groupId', '==', groupId), orderBy('date', 'desc'));
+      // Buscar da subcoleção do grupo: groups/{groupId}/transactions
+      transactionsRef = collection(firestoreDb, 'groups', groupId, 'transactions');
+      q = query(transactionsRef, orderBy('date', 'desc'));
+    } else {
+      // Buscar da subcoleção do usuário: users/{userId}/transactions
+      transactionsRef = collection(firestoreDb, 'users', userId, 'transactions');
+      q = query(transactionsRef, orderBy('date', 'desc'));
     }
 
     const querySnapshot = await getDocs(q);
@@ -190,7 +166,8 @@ export const getUserTransactions = async (
 };
 
 // Atualizar transação existente no Firestore
-// Se a transação pertence a um grupo, atualiza em todos os membros
+// Se a transação pertence a um grupo, atualiza em groups/{groupId}/transactions
+// Caso contrário, atualiza em users/{userId}/transactions
 export const updateTransaction = async (
   transactionId: string,
   transaction: Partial<Omit<Transaction, 'id'>>,
@@ -203,23 +180,58 @@ export const updateTransaction = async (
     };
   }
 
-  // Criar uma variável local para o TypeScript entender que db não é undefined
   const firestoreDb = db;
 
   try {
-    // Buscar a transação atual para obter o groupId
-    const currentTransactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
-    const currentTransactionDoc = await getDoc(currentTransactionRef);
-    
-    if (!currentTransactionDoc.exists()) {
+    // Primeiro, tentar encontrar a transação no grupo (se tiver groupId)
+    let currentTransactionRef: ReturnType<typeof doc> | null = null;
+    let groupId: string | undefined = transaction.groupId;
+
+    // Se temos groupId, buscar no grupo primeiro
+    if (groupId) {
+      currentTransactionRef = doc(firestoreDb, 'groups', groupId, 'transactions', transactionId);
+      const groupTransactionDoc = await getDoc(currentTransactionRef);
+      if (groupTransactionDoc.exists()) {
+        const data = groupTransactionDoc.data();
+        groupId = data.groupId || groupId;
+      } else {
+        // Se não encontrou no grupo, tentar no usuário
+        currentTransactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
+        const userTransactionDoc = await getDoc(currentTransactionRef);
+        if (userTransactionDoc.exists()) {
+          const data = userTransactionDoc.data();
+          groupId = data.groupId;
+          // Se a transação tem groupId mas estava no usuário, mover para o grupo
+          if (data.groupId && data.groupId !== '') {
+            currentTransactionRef = doc(firestoreDb, 'groups', data.groupId, 'transactions', transactionId);
+          }
+        } else {
+          return {
+            success: false,
+            error: 'Transação não encontrada.',
+          };
+        }
+      }
+    } else {
+      // Sem groupId, buscar no usuário
+      currentTransactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
+      const userTransactionDoc = await getDoc(currentTransactionRef);
+      if (!userTransactionDoc.exists()) {
+        return {
+          success: false,
+          error: 'Transação não encontrada.',
+        };
+      }
+      const data = userTransactionDoc.data();
+      groupId = data.groupId;
+    }
+
+    if (!currentTransactionRef) {
       return {
         success: false,
         error: 'Transação não encontrada.',
       };
     }
-
-    const currentData = currentTransactionDoc.data();
-    const groupId = currentData.groupId || transaction.groupId;
 
     const updateData: Record<string, unknown> = {
       updatedAt: serverTimestamp(),
@@ -238,41 +250,8 @@ export const updateTransaction = async (
     if (transaction.receipt !== undefined) updateData.receipt = transaction.receipt || null;
     if (transaction.responsible !== undefined) updateData.responsible = transaction.responsible;
 
-    // Se a transação pertence a um grupo, atualizar em todos os membros
-    if (groupId) {
-      try {
-        const groupRef = doc(firestoreDb, 'users', userId, 'groups', groupId);
-        const groupDoc = await getDoc(groupRef);
-        
-        if (groupDoc.exists()) {
-          const groupData = groupDoc.data();
-          const members = groupData.members || [];
-          
-          // Atualizar a transação em todos os membros do grupo
-          const updatePromises = members.map(async (member: { id: string }) => {
-            try {
-              const memberTransactionRef = doc(firestoreDb, 'users', member.id, 'transactions', transactionId);
-              await updateDoc(memberTransactionRef, updateData);
-            } catch (error) {
-              console.error(`Erro ao atualizar transação para membro ${member.id}:`, error);
-              // Continuar mesmo se houver erro em algum membro
-            }
-          });
-          
-          await Promise.allSettled(updatePromises);
-        } else {
-          // Se o grupo não existir, atualizar apenas para o usuário atual
-          await updateDoc(currentTransactionRef, updateData);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar grupo para sincronização:', error);
-        // Se houver erro, atualizar apenas para o usuário atual
-        await updateDoc(currentTransactionRef, updateData);
-      }
-    } else {
-      // Se não pertence a um grupo, atualizar apenas para o usuário atual
-      await updateDoc(currentTransactionRef, updateData);
-    }
+    // Atualizar a transação
+    await updateDoc(currentTransactionRef, updateData);
 
     return { success: true };
   } catch (error: unknown) {
@@ -286,6 +265,7 @@ export const updateTransaction = async (
 };
 
 // Deletar todas as transações de um grupo
+// Deleta de groups/{groupId}/transactions
 export const deleteGroupTransactions = async (
   groupId: string,
   userId: string
@@ -300,37 +280,24 @@ export const deleteGroupTransactions = async (
   const firestoreDb = db;
 
   try {
-    // Buscar o grupo para obter todos os membros
-    const groupRef = doc(firestoreDb, 'users', userId, 'groups', groupId);
+    // Verificar se o grupo existe
+    const groupRef = doc(firestoreDb, 'groups', groupId);
     const groupDoc = await getDoc(groupRef);
     
     if (!groupDoc.exists()) {
       return { success: true }; // Grupo não existe, não há transações para deletar
     }
 
-    const groupData = groupDoc.data();
-    const members = groupData.members || [];
-
-    // Buscar todas as transações do grupo para cada membro
-    const deletePromises = members.map(async (member: { id: string }) => {
-      try {
-        const transactionsRef = collection(firestoreDb, 'users', member.id, 'transactions');
-        const q = query(transactionsRef, where('groupId', '==', groupId));
-        const querySnapshot = await getDocs(q);
-        
-        // Deletar cada transação encontrada
-        const deleteTransactionPromises = querySnapshot.docs.map(async (docSnap) => {
-          await deleteDoc(docSnap.ref);
-        });
-        
-        await Promise.all(deleteTransactionPromises);
-      } catch (error) {
-        console.error(`Erro ao deletar transações do grupo para membro ${member.id}:`, error);
-        // Continuar mesmo se houver erro em algum membro
-      }
+    // Buscar todas as transações do grupo
+    const transactionsRef = collection(firestoreDb, 'groups', groupId, 'transactions');
+    const querySnapshot = await getDocs(transactionsRef);
+    
+    // Deletar cada transação encontrada
+    const deletePromises = querySnapshot.docs.map(async (docSnap) => {
+      await deleteDoc(docSnap.ref);
     });
-
-    await Promise.allSettled(deletePromises);
+    
+    await Promise.all(deletePromises);
     return { success: true };
   } catch (error: unknown) {
     console.error('Erro ao deletar transações do grupo:', error);
@@ -343,10 +310,13 @@ export const deleteGroupTransactions = async (
 };
 
 // Deletar transação do Firestore
-// Se a transação pertence a um grupo, deleta de todos os membros
+// Se a transação pertence a um grupo, deleta de groups/{groupId}/transactions
+// Caso contrário, deleta de users/{userId}/transactions
+// Aceita groupId opcional para melhor performance
 export const deleteTransaction = async (
   transactionId: string,
-  userId: string
+  userId: string,
+  groupId?: string
 ): Promise<{ success: boolean; error?: string }> => {
   if (!db) {
     return {
@@ -355,56 +325,59 @@ export const deleteTransaction = async (
     };
   }
 
-  // Criar uma variável local para o TypeScript entender que db não é undefined
   const firestoreDb = db;
 
   try {
-    // Buscar a transação atual para obter o groupId
-    const currentTransactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
-    const currentTransactionDoc = await getDoc(currentTransactionRef);
-    
-    let groupId: string | undefined;
-    if (currentTransactionDoc.exists()) {
-      const currentData = currentTransactionDoc.data();
-      groupId = currentData.groupId;
-    }
+    let transactionRef: ReturnType<typeof doc> | null = null;
+    let found = false;
 
-    // Se a transação pertence a um grupo, deletar de todos os membros
-    if (groupId) {
-      try {
-        const groupRef = doc(firestoreDb, 'users', userId, 'groups', groupId);
-        const groupDoc = await getDoc(groupRef);
-        
-        if (groupDoc.exists()) {
-          const groupData = groupDoc.data();
-          const members = groupData.members || [];
-          
-          // Deletar a transação de todos os membros do grupo
-          const deletePromises = members.map(async (member: { id: string }) => {
-            try {
-              const memberTransactionRef = doc(firestoreDb, 'users', member.id, 'transactions', transactionId);
-              await deleteDoc(memberTransactionRef);
-            } catch (error) {
-              console.error(`Erro ao deletar transação para membro ${member.id}:`, error);
-              // Continuar mesmo se houver erro em algum membro
-            }
-          });
-          
-          await Promise.allSettled(deletePromises);
-        } else {
-          // Se o grupo não existir, deletar apenas do usuário atual
-          await deleteDoc(currentTransactionRef);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar grupo para sincronização:', error);
-        // Se houver erro, deletar apenas do usuário atual
-        await deleteDoc(currentTransactionRef);
+    // Se temos groupId, tentar deletar do grupo primeiro
+    if (groupId && groupId !== '') {
+      transactionRef = doc(firestoreDb, 'groups', groupId, 'transactions', transactionId);
+      const groupTransactionDoc = await getDoc(transactionRef);
+      if (groupTransactionDoc.exists()) {
+        found = true;
       }
-    } else {
-      // Se não pertence a um grupo, deletar apenas do usuário atual
-      await deleteDoc(currentTransactionRef);
     }
 
+    // Se não encontrou no grupo (ou não temos groupId), tentar no usuário
+    if (!found) {
+      const userTransactionRef = doc(firestoreDb, 'users', userId, 'transactions', transactionId);
+      const userTransactionDoc = await getDoc(userTransactionRef);
+      
+      if (userTransactionDoc.exists()) {
+        const data = userTransactionDoc.data();
+        const transGroupId = data.groupId;
+        
+        if (transGroupId && transGroupId !== '') {
+          // Se tem groupId, deletar do grupo
+          transactionRef = doc(firestoreDb, 'groups', transGroupId, 'transactions', transactionId);
+          const groupTransactionDoc = await getDoc(transactionRef);
+          if (groupTransactionDoc.exists()) {
+            found = true;
+            // Deletar também do usuário (pode ser uma transação antiga)
+            await deleteDoc(userTransactionRef);
+          } else {
+            // Se não encontrou no grupo, deletar do usuário mesmo
+            transactionRef = userTransactionRef;
+            found = true;
+          }
+        } else {
+          // Sem groupId, deletar do usuário
+          transactionRef = userTransactionRef;
+          found = true;
+        }
+      }
+    }
+
+    if (!found || !transactionRef) {
+      return {
+        success: false,
+        error: 'Transação não encontrada.',
+      };
+    }
+
+    await deleteDoc(transactionRef);
     return { success: true };
   } catch (error: unknown) {
     console.error('Erro ao deletar transação:', error);

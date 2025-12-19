@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import React from "react";
 import FloatingMenu from "@/components/ui/FloatingMenu";
 import Header from "@/components/ui/Header";
 import NewGroupModal from "@/components/modals/NewGroupModal";
@@ -223,7 +224,34 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
   onEditGroup: (group: Group) => void;
   onDeleteGroup: (group: Group) => void;
 }) {
-  const { groups } = useApp();
+  const { groups, user } = useApp();
+  const [pendingInvites, setPendingInvites] = useState<Record<string, number>>({});
+  
+  // Buscar convites pendentes para cada grupo
+  React.useEffect(() => {
+    const loadPendingInvites = async () => {
+      if (!user?.id) return;
+      
+      const invitesMap: Record<string, number> = {};
+      const promises = groups.map(async (group) => {
+        try {
+          const { getPendingInvitesForGroup } = await import('@/lib/firebase/groups');
+          const result = await getPendingInvitesForGroup(group.id);
+          if (result.success && result.data) {
+            invitesMap[group.id] = result.data.length;
+          }
+        } catch (error) {
+          console.error(`Erro ao buscar convites do grupo ${group.id}:`, error);
+        }
+      });
+      
+      await Promise.all(promises);
+      setPendingInvites(invitesMap);
+    };
+    
+    loadPendingInvites();
+  }, [groups, user?.id]);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -237,12 +265,22 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {groups.map((group) => (
-          <div key={group.id} className="bg-white rounded-2xl p-4">
+      {groups.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {groups.map((group) => {
+            const pendingCount = pendingInvites[group.id] || 0;
+            return (
+            <div key={group.id} className="bg-white rounded-2xl p-4">
           <div className="flex justify-between items-start mb-3">
             <div>
-              <h3 className="font-semibold text-gray-800">{group.title}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-gray-800">{group.title}</h3>
+                {pendingCount > 0 && (
+                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-medium">
+                    {pendingCount} convite{pendingCount > 1 ? 's' : ''} pendente{pendingCount > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
               {group.description && (
                 <p className="text-xs text-gray-500 mt-1">
                   {group.description}
@@ -307,9 +345,16 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
               </div>
             ))}
           </div>
+          </div>
+          );
+        })}
         </div>
-        ))}
-      </div>
+      ) : (
+        <div className="bg-white rounded-2xl p-8 text-center">
+          <p className="text-gray-600 text-base mb-2">Nenhum grupo cadastrado ainda.</p>
+          <p className="text-sm text-gray-500">Adicione um grupo através do botão <span className="font-semibold text-blue-600">Novo Grupo</span> acima.</p>
+        </div>
+      )}
     </div>
   );
 }

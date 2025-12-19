@@ -48,9 +48,9 @@ export default function ExpensePage() {
               onTransactionClick={handleTransactionClick}
             />
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>Nenhuma despesa cadastrada ainda.</p>
-              <p className="text-sm mt-2">Adicione despesas através do dashboard principal!</p>
+            <div className="bg-white rounded-2xl p-8 text-center">
+              <p className="text-gray-600 text-base mb-2">Nenhuma despesa cadastrada ainda.</p>
+              <p className="text-sm text-gray-500">Adicione despesas através do botão <span className="font-semibold text-red-600">-</span> no menu inferior.</p>
             </div>
           )}
         </div>

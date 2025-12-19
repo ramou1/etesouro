@@ -11,7 +11,7 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
-import { getUserData, saveUserData, updateUserName } from '@/lib/firebase/user';
+import { getUserData, saveUserData, updateUserName, updateAllowGroupInvites as updateAllowGroupInvitesFirebase } from '@/lib/firebase/user';
 import { getCombinedCategories, getCombinedGroups, getCombinedTransactions } from '@/lib/firebase/dataHelpers';
 import { saveTransaction, deleteTransaction, updateTransaction as updateTransactionFirebase } from '@/lib/firebase/transactions';
 
@@ -31,6 +31,7 @@ interface AppContextType {
   logout: () => void;
   register: (name: string, email: string, password: string, allowGroupInvites?: boolean) => Promise<{ success: boolean; error?: string }>;
   updateUserProfile: (name: string) => Promise<{ success: boolean; error?: string }>;
+  updateAllowGroupInvites: (allowGroupInvites: boolean) => Promise<{ success: boolean; error?: string }>;
   selectedParticipants: string[];
   toggleParticipant: (participantId: string) => void;
   getFilteredFinancialData: () => FinancialData;
@@ -273,10 +274,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const removeTransaction = async (id: string) => {
+    // Encontrar a transação para obter o groupId
+    const transaction = financialData.transactions.find(t => t.id === id);
+    const groupId = transaction?.groupId || activeGroup?.id;
+
     // Se houver usuário, deletar no Firestore
     if (user?.id) {
       try {
-        const firestoreResult = await deleteTransaction(id, user.id);
+        const firestoreResult = await deleteTransaction(id, user.id, groupId);
         
         if (!firestoreResult.success) {
           console.error('Erro ao deletar transação no Firestore:', firestoreResult.error);
@@ -437,6 +442,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateAllowGroupInvites = async (allowGroupInvites: boolean): Promise<{ success: boolean; error?: string }> => {
+    if (!user?.id) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      // Atualizar no Firebase se estiver configurado
+      if (auth) {
+        const result = await updateAllowGroupInvitesFirebase(user.id, allowGroupInvites);
+        return result;
+      } else {
+        // Modo mock: apenas retornar sucesso
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar preferência de convites:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar preferência de convites';
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const getFilteredFinancialData = (): FinancialData => {
     // Se nenhum participante está desabilitado, retorna os dados completos do grupo ativo
     if (selectedParticipants.length === 0) {
@@ -480,6 +506,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logout,
         register,
         updateUserProfile,
+        updateAllowGroupInvites,
         addTransaction,
         updateTransaction,
         removeTransaction,

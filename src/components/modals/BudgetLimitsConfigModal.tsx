@@ -51,7 +51,7 @@ const DEFAULT_LIMITS: Omit<BudgetLimit, 'id' | 'groupId' | 'categoryIds'>[] = [
 export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigModalProps) {
   const { groups, expenseCategories, activeGroup, user } = useApp();
   const [selectedGroupId, setSelectedGroupId] = useState<string>(activeGroup?.id || '');
-  const [limits, setLimits] = useState<Record<string, Omit<BudgetLimit, 'id' | 'groupId'>>>({});
+  const [limits, setLimits] = useState<Record<string, BudgetLimit>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   // Carregar limites salvos quando um grupo é selecionado
@@ -59,10 +59,12 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
     const loadLimits = async () => {
       if (!selectedGroupId || !user?.id) {
         // Se não há grupo selecionado, inicializar com valores padrão
-        const initialLimits: Record<string, Omit<BudgetLimit, 'id' | 'groupId'>> = {};
+        const initialLimits: Record<string, BudgetLimit> = {};
         DEFAULT_LIMITS.forEach(limit => {
           initialLimits[limit.type] = {
             ...limit,
+            id: '',
+            groupId: '',
             categoryIds: []
           };
         });
@@ -74,14 +76,16 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
         const result = await getGroupBudgetLimits(selectedGroupId, user.id);
         if (result.success && result.data) {
           // Converter array de limites para objeto indexado por type
-          const limitsMap: Record<string, Omit<BudgetLimit, 'id' | 'groupId'>> = {};
+          const limitsMap: Record<string, BudgetLimit> = {};
           result.data.forEach(limit => {
             limitsMap[limit.type] = {
+              id: limit.id,
               name: limit.name,
               description: limit.description,
               percentage: limit.percentage,
               color: limit.color,
               type: limit.type,
+              groupId: limit.groupId || selectedGroupId,
               categoryIds: limit.categoryIds || []
             };
           });
@@ -91,6 +95,8 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
             if (!limitsMap[defaultLimit.type]) {
               limitsMap[defaultLimit.type] = {
                 ...defaultLimit,
+                id: '',
+                groupId: selectedGroupId,
                 categoryIds: []
               };
             }
@@ -99,10 +105,12 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
           setLimits(limitsMap);
         } else {
           // Se não houver limites salvos, usar valores padrão
-          const initialLimits: Record<string, Omit<BudgetLimit, 'id' | 'groupId'>> = {};
+          const initialLimits: Record<string, BudgetLimit> = {};
           DEFAULT_LIMITS.forEach(limit => {
             initialLimits[limit.type] = {
               ...limit,
+              id: '',
+              groupId: selectedGroupId,
               categoryIds: []
             };
           });
@@ -111,10 +119,12 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
       } catch (error) {
         console.error('Erro ao carregar limites:', error);
         // Em caso de erro, usar valores padrão
-        const initialLimits: Record<string, Omit<BudgetLimit, 'id' | 'groupId'>> = {};
+        const initialLimits: Record<string, BudgetLimit> = {};
         DEFAULT_LIMITS.forEach(limit => {
           initialLimits[limit.type] = {
             ...limit,
+            id: '',
+            groupId: selectedGroupId,
             categoryIds: []
           };
         });
@@ -174,8 +184,11 @@ export default function BudgetLimitsConfigModal({ onClose }: BudgetLimitsConfigM
 
     setIsLoading(true);
     try {
-      // Converter objeto de limites para array
-      const limitsArray: Omit<BudgetLimit, 'id' | 'groupId'>[] = Object.values(limits);
+      // Converter objeto de limites para array, garantindo que todos tenham groupId
+      const limitsArray: BudgetLimit[] = Object.values(limits).map(limit => ({
+        ...limit,
+        groupId: selectedGroupId
+      }));
       
       const result = await saveGroupBudgetLimits(selectedGroupId, user.id, limitsArray);
       

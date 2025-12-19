@@ -1,4 +1,5 @@
 // Serviço para gerenciar grupos no Firestore
+// Grupos são salvos na raiz (groups/{groupId}) para sincronização entre membros
 import { 
   collection, 
   doc, 
@@ -24,11 +25,19 @@ export interface GroupData {
   description?: string;
   members: GroupMember[];
   isTemporary: boolean;
+  createdBy: string; // userId do criador
   createdAt?: Timestamp | FieldValue | null;
   updatedAt?: Timestamp | FieldValue | null;
 }
 
-// Salvar novo grupo no Firestore (como subcoleção do usuário)
+// Interface para referência de membro do grupo
+export interface GroupMembership {
+  groupId: string;
+  userId: string;
+  joinedAt?: Timestamp | FieldValue | null;
+}
+
+// Salvar novo grupo no Firestore (na raiz: groups/{groupId})
 export const saveGroup = async (
   group: Omit<Group, 'id'>, 
   userId: string
@@ -43,8 +52,9 @@ export const saveGroup = async (
   try {
     // Gerar ID único para o grupo
     const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    // Salvar como subcoleção dentro do usuário: users/{userId}/groups/{groupId}
-    const groupRef = doc(db, 'users', userId, 'groups', groupId);
+    
+    // Salvar grupo na raiz: groups/{groupId}
+    const groupRef = doc(db, 'groups', groupId);
 
     // Atualizar o groupId em todos os membros
     const membersWithGroupId = group.members.map(member => ({
@@ -58,11 +68,28 @@ export const saveGroup = async (
       description: group.description || undefined,
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
+      createdBy: userId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
     await setDoc(groupRef, groupData);
+
+    // Criar referências de membros para todos os membros do grupo
+    const membershipPromises = membersWithGroupId.map(async (member) => {
+      try {
+        const membershipRef = doc(db, 'users', member.id, 'groupMemberships', groupId);
+        await setDoc(membershipRef, {
+          groupId,
+          userId: member.id,
+          joinedAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error(`Erro ao criar referência de membro ${member.id}:`, error);
+      }
+    });
+
+    await Promise.allSettled(membershipPromises);
 
     // Criar limites de orçamento padrão para o grupo
     try {
@@ -109,7 +136,7 @@ export const saveGroup = async (
   }
 };
 
-// Buscar grupos do usuário no Firestore (da subcoleção do usuário)
+// Buscar grupos do usuário usando referências (groupMemberships)
 export const getUserGroups = async (userId: string): Promise<{ success: boolean; data?: Group[]; error?: string }> => {
   if (!db) {
     return {
@@ -119,21 +146,40 @@ export const getUserGroups = async (userId: string): Promise<{ success: boolean;
   }
 
   try {
-    // Buscar da subcoleção: users/{userId}/groups
-    const groupsRef = collection(db, 'users', userId, 'groups');
-    const querySnapshot = await getDocs(groupsRef);
-    const groups: Group[] = [];
-
-    querySnapshot.forEach((docSnap) => {
+    // Buscar referências de grupos do usuário
+    const membershipsRef = collection(db, 'users', userId, 'groupMemberships');
+    const membershipsSnapshot = await getDocs(membershipsRef);
+    
+    const groupIds: string[] = [];
+    membershipsSnapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      groups.push({
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        members: data.members || [],
-        isTemporary: data.isTemporary || false,
-      });
+      if (data.groupId) {
+        groupIds.push(data.groupId);
+      }
     });
+
+    // Buscar os grupos da raiz
+    const groups: Group[] = [];
+    for (const groupId of groupIds) {
+      try {
+        const groupRef = doc(db, 'groups', groupId);
+        const groupDoc = await getDoc(groupRef);
+        
+        if (groupDoc.exists()) {
+          const data = groupDoc.data();
+          groups.push({
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            members: data.members || [],
+            isTemporary: data.isTemporary || false,
+          });
+        }
+      } catch (error) {
+        console.error(`Erro ao buscar grupo ${groupId}:`, error);
+        // Continuar mesmo se houver erro em algum grupo
+      }
+    }
 
     return {
       success: true,
@@ -149,7 +195,42 @@ export const getUserGroups = async (userId: string): Promise<{ success: boolean;
   }
 };
 
-// Atualizar grupo existente no Firestore
+// Buscar um grupo específico da raiz
+export const getGroup = async (groupId: string): Promise<{ success: boolean; data?: GroupData; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const groupRef = doc(db, 'groups', groupId);
+    const groupDoc = await getDoc(groupRef);
+    
+    if (!groupDoc.exists()) {
+      return {
+        success: false,
+        error: 'Grupo não encontrado.',
+      };
+    }
+
+    const data = groupDoc.data() as GroupData;
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: unknown) {
+    console.error('Erro ao buscar grupo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar grupo';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Atualizar grupo existente no Firestore (na raiz)
 export const updateGroup = async (
   groupId: string,
   group: Omit<Group, 'id'>,
@@ -162,12 +243,20 @@ export const updateGroup = async (
     };
   }
 
-  // Criar variável local para TypeScript rastrear o tipo
   const firestoreDb = db;
 
   try {
-    // Atualizar na subcoleção: users/{userId}/groups/{groupId}
-    const groupRef = doc(firestoreDb, 'users', userId, 'groups', groupId);
+    // Atualizar na raiz: groups/{groupId}
+    const groupRef = doc(firestoreDb, 'groups', groupId);
+
+    // Verificar se o grupo existe e se o usuário tem permissão
+    const groupDoc = await getDoc(groupRef);
+    if (!groupDoc.exists()) {
+      return {
+        success: false,
+        error: 'Grupo não encontrado.',
+      };
+    }
 
     // Atualizar o groupId em todos os membros
     const membersWithGroupId = group.members.map(member => ({
@@ -185,18 +274,41 @@ export const updateGroup = async (
     };
 
     // Buscar membros antigos para identificar novos membros
-    const oldGroupDoc = await getDoc(groupRef);
-    let oldMembers: GroupMember[] = [];
-    if (oldGroupDoc.exists()) {
-      const data = oldGroupDoc.data();
-      oldMembers = data.members || [];
-    }
+    const oldData = groupDoc.data() as GroupData;
+    const oldMembers = oldData.members || [];
 
     await updateDoc(groupRef, groupData);
 
     // Identificar novos membros (que não estavam no grupo antes)
     const oldMemberIds = oldMembers.map(m => m.id);
     const newMembers = membersWithGroupId.filter(m => !oldMemberIds.includes(m.id));
+    const removedMembers = oldMembers.filter(m => !membersWithGroupId.some(nm => nm.id === m.id));
+
+    // Criar referências para novos membros
+    const addMembershipPromises = newMembers.map(async (member) => {
+      try {
+        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
+        await setDoc(membershipRef, {
+          groupId,
+          userId: member.id,
+          joinedAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error(`Erro ao criar referência para novo membro ${member.id}:`, error);
+      }
+    });
+
+    // Remover referências de membros removidos
+    const removeMembershipPromises = removedMembers.map(async (member) => {
+      try {
+        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
+        await deleteDoc(membershipRef);
+      } catch (error) {
+        console.error(`Erro ao remover referência de membro ${member.id}:`, error);
+      }
+    });
+
+    await Promise.allSettled([...addMembershipPromises, ...removeMembershipPromises]);
 
     // Buscar dados do criador para incluir no convite
     const creatorRef = doc(firestoreDb, 'users', userId);
@@ -210,14 +322,11 @@ export const updateGroup = async (
     };
 
     // Criar convites para novos membros
-    // NOTA: Não atualizamos grupos de outros usuários diretamente por questões de segurança/permissões
-    // Membros existentes que já aceitaram o convite terão o grupo atualizado quando aceitarem novamente
-    // ou podemos criar uma funcionalidade separada para sincronização
     const invitePromises = newMembers
       .filter(member => member.id !== userId)
       .map(async (member) => {
         try {
-          await createGroupInvite(groupId, groupData, creatorInfo, member.id);
+          await createGroupInvite(groupId, groupData as GroupData, creatorInfo, member.id);
         } catch (error) {
           console.error(`Erro ao criar convite para novo membro ${member.id}:`, error);
         }
@@ -236,7 +345,7 @@ export const updateGroup = async (
   }
 };
 
-// Deletar grupo do Firestore
+// Deletar grupo do Firestore (da raiz e todas as referências)
 export const deleteGroup = async (
   groupId: string,
   userId: string
@@ -249,6 +358,20 @@ export const deleteGroup = async (
   }
 
   try {
+    // Buscar o grupo para obter lista de membros
+    const groupRef = doc(db, 'groups', groupId);
+    const groupDoc = await getDoc(groupRef);
+    
+    if (!groupDoc.exists()) {
+      return {
+        success: false,
+        error: 'Grupo não encontrado.',
+      };
+    }
+
+    const groupData = groupDoc.data() as GroupData;
+    const members = groupData.members || [];
+
     // Primeiro, deletar todas as transações do grupo
     const deleteTransactionsResult = await deleteGroupTransactions(groupId, userId);
     
@@ -257,8 +380,29 @@ export const deleteGroup = async (
       // Continuar mesmo se houver erro ao deletar transações
     }
 
-    // Depois, deletar o grupo
-    const groupRef = doc(db, 'users', userId, 'groups', groupId);
+    // Remover referências de membros
+    const removeMembershipPromises = members.map(async (member) => {
+      try {
+        const membershipRef = doc(db, 'users', member.id, 'groupMemberships', groupId);
+        await deleteDoc(membershipRef);
+      } catch (error) {
+        console.error(`Erro ao remover referência de membro ${member.id}:`, error);
+      }
+    });
+
+    await Promise.allSettled(removeMembershipPromises);
+
+    // Deletar limites de orçamento (subcoleção do grupo)
+    try {
+      const limitsRef = collection(db, 'groups', groupId, 'budgetLimits');
+      const limitsSnapshot = await getDocs(limitsRef);
+      const deleteLimitsPromises = limitsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.allSettled(deleteLimitsPromises);
+    } catch (error) {
+      console.error('Erro ao deletar limites do grupo:', error);
+    }
+
+    // Por último, deletar o grupo da raiz
     await deleteDoc(groupRef);
 
     return { success: true };
@@ -304,11 +448,6 @@ export const createGroupInvite = async (
   }
 
   try {
-    // NOTA: Não verificamos convites existentes aqui porque as regras do Firestore
-    // só permitem ler convites onde o usuário é o convidado. A verificação será feita
-    // no lado do cliente quando o usuário tentar aceitar o convite.
-    // Se houver múltiplos convites pendentes, o usuário pode aceitar qualquer um deles.
-
     // Criar novo convite
     const inviteId = `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const inviteRef = doc(db, 'groupInvites', inviteId);
@@ -384,7 +523,7 @@ export const getPendingInvites = async (
   }
 };
 
-// Aceitar convite
+// Aceitar convite - cria apenas referência de membro
 export const acceptGroupInvite = async (
   inviteId: string,
   userId: string
@@ -432,15 +571,47 @@ export const acceptGroupInvite = async (
       updatedAt: serverTimestamp(),
     });
 
-    // Salvar o grupo na conta do usuário
-    const groupRef = doc(db, 'users', userId, 'groups', inviteData.groupId);
-    await setDoc(groupRef, inviteData.groupData);
+    // Criar referência de membro (não copiar o grupo, apenas referência)
+    const membershipRef = doc(db, 'users', userId, 'groupMemberships', inviteData.groupId);
+    await setDoc(membershipRef, {
+      groupId: inviteData.groupId,
+      userId: userId,
+      joinedAt: serverTimestamp(),
+    });
 
-    // NOTA: Não copiamos transações antigas aqui devido às regras de segurança do Firestore
-    // Cada usuário só pode ler suas próprias transações. As transações antigas permanecerão
-    // apenas com os membros que já estavam no grupo. No entanto, todas as NOVAS transações
-    // criadas após o membro aceitar o convite serão automaticamente sincronizadas para todos
-    // os membros do grupo, incluindo o novo membro, através da função saveTransaction.
+    // Verificar se o usuário já está na lista de membros do grupo
+    const groupRef = doc(db, 'groups', inviteData.groupId);
+    const groupDoc = await getDoc(groupRef);
+    
+    if (groupDoc.exists()) {
+      const groupData = groupDoc.data() as GroupData;
+      const isMember = groupData.members.some(m => m.id === userId);
+      
+      // Se não estiver na lista de membros, adicionar
+      if (!isMember) {
+        // Buscar dados do usuário para adicionar como membro
+        const userRef = doc(db, 'users', userId);
+        const userDoc = await getDoc(userRef);
+        const userData = userDoc.exists() ? userDoc.data() : null;
+        
+        if (userData) {
+          const newMember: GroupMember = {
+            id: userId,
+            name: userData.name || 'Usuário',
+            email: userData.email || '',
+            avatar: userData.avatar || '',
+            isAdmin: false,
+            contributesIncome: false,
+            groupId: inviteData.groupId,
+          };
+          
+          await updateDoc(groupRef, {
+            members: [...groupData.members, newMember],
+            updatedAt: serverTimestamp(),
+          });
+        }
+      }
+    }
 
     return { success: true };
   } catch (error: unknown) {
@@ -504,3 +675,42 @@ export const rejectGroupInvite = async (
   }
 };
 
+// Buscar convites pendentes de um grupo específico
+export const getPendingInvitesForGroup = async (
+  groupId: string
+): Promise<{ success: boolean; data?: GroupInvite[]; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const invitesRef = collection(db, 'groupInvites');
+    const invitesQuery = query(
+      invitesRef,
+      where('groupId', '==', groupId),
+      where('status', '==', 'pending')
+    );
+    const querySnapshot = await getDocs(invitesQuery);
+    
+    const invites: GroupInvite[] = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data() as GroupInvite;
+      invites.push(data);
+    });
+
+    return {
+      success: true,
+      data: invites,
+    };
+  } catch (error: unknown) {
+    console.error('Erro ao buscar convites pendentes do grupo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar convites pendentes do grupo';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};

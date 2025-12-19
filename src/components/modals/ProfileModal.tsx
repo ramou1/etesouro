@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, User as UserIcon, Mail, Crown } from 'lucide-react';
+import { X, Save, User as UserIcon, Mail, Crown, Users } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import Avatar from '@/components/ui/Avatar';
+import { getUserData } from '@/lib/firebase/user';
 
 interface ProfileModalProps {
   onClose: () => void;
@@ -17,9 +18,11 @@ interface PlanInfo {
 }
 
 export default function ProfileModal({ onClose }: ProfileModalProps) {
-  const { user, updateUserProfile } = useApp();
+  const { user, updateUserProfile, updateAllowGroupInvites } = useApp();
   const [name, setName] = useState(user?.name || '');
+  const [allowGroupInvites, setAllowGroupInvites] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingInvites, setIsLoadingInvites] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -36,6 +39,23 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
       setName(user.name);
     }
   }, [user?.name]);
+
+  // Carregar allowGroupInvites do Firestore
+  useEffect(() => {
+    const loadAllowGroupInvites = async () => {
+      if (user?.id) {
+        try {
+          const result = await getUserData(user.id);
+          if (result.success && result.data) {
+            setAllowGroupInvites(result.data.allowGroupInvites ?? true);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar preferência de convites:', error);
+        }
+      }
+    };
+    loadAllowGroupInvites();
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,6 +150,48 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 mt-1">O email não pode ser alterado</p>
+            </div>
+
+            {/* Permitir Convites de Grupos */}
+            <div className="border-t border-gray-200 pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <label htmlFor="allowGroupInvites" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <Users size={16} className="text-gray-500" />
+                    Permitir convites de grupos
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    Quando ativado, outros usuários podem te adicionar em grupos
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const newValue = !allowGroupInvites;
+                    setAllowGroupInvites(newValue);
+                    setIsLoadingInvites(true);
+                    try {
+                      await updateAllowGroupInvites(newValue);
+                    } catch (error) {
+                      console.error('Erro ao atualizar preferência:', error);
+                      // Reverter em caso de erro
+                      setAllowGroupInvites(allowGroupInvites);
+                    } finally {
+                      setIsLoadingInvites(false);
+                    }
+                  }}
+                  disabled={isLoadingInvites}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
+                    allowGroupInvites ? 'bg-yellow-500' : 'bg-gray-200'
+                  } ${isLoadingInvites ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      allowGroupInvites ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             {/* Informações do Plano */}

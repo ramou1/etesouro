@@ -68,7 +68,7 @@ const DEFAULT_BUDGET_LIMITS: Omit<BudgetLimitData, 'id' | 'groupId' | 'createdAt
   }
 ];
 
-// Criar limites padrão para um grupo
+// Criar limites padrão para um grupo (na raiz: groups/{groupId}/budgetLimits)
 export const createDefaultBudgetLimits = async (
   groupId: string,
   userId: string
@@ -81,10 +81,11 @@ export const createDefaultBudgetLimits = async (
   }
 
   try {
-    const limitsRef = collection(db, 'users', userId, 'groups', groupId, 'budgetLimits');
+    // Usar subcoleção do grupo na raiz
+    const limitsRef = collection(db, 'groups', groupId, 'budgetLimits');
     
     const createPromises = DEFAULT_BUDGET_LIMITS.map(async (limit) => {
-      const limitId = `limit-${limit.type}-${groupId}`;
+      const limitId = `limit-${limit.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const limitRef = doc(limitsRef, limitId);
       
       const limitData: BudgetLimitData = {
@@ -110,7 +111,7 @@ export const createDefaultBudgetLimits = async (
   }
 };
 
-// Buscar limites de orçamento de um grupo
+// Buscar limites de orçamento de um grupo (da raiz: groups/{groupId}/budgetLimits)
 export const getGroupBudgetLimits = async (
   groupId: string,
   userId: string
@@ -123,7 +124,8 @@ export const getGroupBudgetLimits = async (
   }
 
   try {
-    const limitsRef = collection(db, 'users', userId, 'groups', groupId, 'budgetLimits');
+    // Buscar da subcoleção do grupo na raiz
+    const limitsRef = collection(db, 'groups', groupId, 'budgetLimits');
     const querySnapshot = await getDocs(limitsRef);
     const limits: BudgetLimit[] = [];
 
@@ -155,11 +157,11 @@ export const getGroupBudgetLimits = async (
   }
 };
 
-// Salvar/Atualizar limites de orçamento de um grupo
+// Salvar/Atualizar limites de orçamento de um grupo (na raiz: groups/{groupId}/budgetLimits)
 export const saveGroupBudgetLimits = async (
   groupId: string,
   userId: string,
-  limits: Omit<BudgetLimit, 'id' | 'groupId'>[]
+  limits: BudgetLimit[]
 ): Promise<{ success: boolean; error?: string }> => {
   if (!db) {
     return {
@@ -169,11 +171,12 @@ export const saveGroupBudgetLimits = async (
   }
 
   try {
-    const limitsRef = collection(db, 'users', userId, 'groups', groupId, 'budgetLimits');
+    // Usar subcoleção do grupo na raiz
+    const limitsRef = collection(db, 'groups', groupId, 'budgetLimits');
     
     const savePromises = limits.map(async (limit) => {
-      // Usar o type como parte do ID para manter consistência
-      const limitId = `limit-${limit.type}-${groupId}`;
+      // Usar o ID do limite se existir, senão gerar novo
+      const limitId = limit.id || `limit-${limit.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const limitRef = doc(limitsRef, limitId);
       
       const limitData: BudgetLimitData = {

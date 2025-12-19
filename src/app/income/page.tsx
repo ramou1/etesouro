@@ -48,9 +48,9 @@ export default function IncomePage() {
               onTransactionClick={handleTransactionClick}
             />
           ) : (
-            <div className="text-center py-8 text-gray-600">
-              <p>Nenhuma receita cadastrada ainda.</p>
-              <p className="text-sm mt-2">Adicione receitas através do dashboard principal!</p>
+            <div className="bg-white rounded-2xl p-8 text-center">
+              <p className="text-gray-600 text-base mb-2">Nenhuma receita cadastrada ainda.</p>
+              <p className="text-sm text-gray-500">Adicione receitas através do botão <span className="font-semibold text-green-600">+</span> no menu inferior.</p>
             </div>
           )}
         </div>

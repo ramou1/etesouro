@@ -174,6 +174,47 @@ export const updateUserName = async (userId: string, name: string): Promise<{ su
   }
 };
 
+// Atualizar allowGroupInvites do usuário
+export const updateAllowGroupInvites = async (userId: string, allowGroupInvites: boolean): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      allowGroupInvites: allowGroupInvites,
+      updatedAt: serverTimestamp(),
+    });
+
+    // Buscar dados do usuário para sincronizar
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserData;
+      // Sincronizar com userSearch
+      await syncUserSearchData({
+        id: userId,
+        name: userData.name,
+        email: userData.email,
+        avatar: userData.avatar,
+        allowGroupInvites: allowGroupInvites,
+      });
+    }
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao atualizar allowGroupInvites:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar preferência de convites';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
 // Sincronizar dados públicos do usuário para busca (coleção pública)
 export const syncUserSearchData = async (userData: UserData): Promise<{ success: boolean; error?: string }> => {
   if (!db) {
