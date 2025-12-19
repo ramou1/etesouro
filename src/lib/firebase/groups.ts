@@ -49,12 +49,15 @@ export const saveGroup = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
     // Gerar ID único para o grupo
     const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     // Salvar grupo na raiz: groups/{groupId}
-    const groupRef = doc(db, 'groups', groupId);
+    const groupRef = doc(firestoreDb, 'groups', groupId);
 
     // Atualizar o groupId em todos os membros
     const membersWithGroupId = group.members.map(member => ({
@@ -78,7 +81,7 @@ export const saveGroup = async (
     // Criar referências de membros para todos os membros do grupo
     const membershipPromises = membersWithGroupId.map(async (member) => {
       try {
-        const membershipRef = doc(db, 'users', member.id, 'groupMemberships', groupId);
+        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
         await setDoc(membershipRef, {
           groupId,
           userId: member.id,
@@ -101,7 +104,7 @@ export const saveGroup = async (
 
     // Criar convites para cada membro (exceto o criador)
     // Buscar dados do criador para incluir no convite
-    const creatorRef = doc(db, 'users', userId);
+    const creatorRef = doc(firestoreDb, 'users', userId);
     const creatorDoc = await getDoc(creatorRef);
     const creatorData = creatorDoc.exists() ? creatorDoc.data() : null;
     
@@ -145,9 +148,12 @@ export const getUserGroups = async (userId: string): Promise<{ success: boolean;
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
     // Buscar referências de grupos do usuário
-    const membershipsRef = collection(db, 'users', userId, 'groupMemberships');
+    const membershipsRef = collection(firestoreDb, 'users', userId, 'groupMemberships');
     const membershipsSnapshot = await getDocs(membershipsRef);
     
     const groupIds: string[] = [];
@@ -162,7 +168,7 @@ export const getUserGroups = async (userId: string): Promise<{ success: boolean;
     const groups: Group[] = [];
     for (const groupId of groupIds) {
       try {
-        const groupRef = doc(db, 'groups', groupId);
+        const groupRef = doc(firestoreDb, 'groups', groupId);
         const groupDoc = await getDoc(groupRef);
         
         if (groupDoc.exists()) {
@@ -204,8 +210,11 @@ export const getGroup = async (groupId: string): Promise<{ success: boolean; dat
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
-    const groupRef = doc(db, 'groups', groupId);
+    const groupRef = doc(firestoreDb, 'groups', groupId);
     const groupDoc = await getDoc(groupRef);
     
     if (!groupDoc.exists()) {
@@ -357,9 +366,12 @@ export const deleteGroup = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
     // Buscar o grupo para obter lista de membros
-    const groupRef = doc(db, 'groups', groupId);
+    const groupRef = doc(firestoreDb, 'groups', groupId);
     const groupDoc = await getDoc(groupRef);
     
     if (!groupDoc.exists()) {
@@ -383,7 +395,7 @@ export const deleteGroup = async (
     // Remover referências de membros
     const removeMembershipPromises = members.map(async (member) => {
       try {
-        const membershipRef = doc(db, 'users', member.id, 'groupMemberships', groupId);
+        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
         await deleteDoc(membershipRef);
       } catch (error) {
         console.error(`Erro ao remover referência de membro ${member.id}:`, error);
@@ -394,7 +406,7 @@ export const deleteGroup = async (
 
     // Deletar limites de orçamento (subcoleção do grupo)
     try {
-      const limitsRef = collection(db, 'groups', groupId, 'budgetLimits');
+      const limitsRef = collection(firestoreDb, 'groups', groupId, 'budgetLimits');
       const limitsSnapshot = await getDocs(limitsRef);
       const deleteLimitsPromises = limitsSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.allSettled(deleteLimitsPromises);
@@ -447,10 +459,13 @@ export const createGroupInvite = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
     // Criar novo convite
     const inviteId = `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const inviteRef = doc(db, 'groupInvites', inviteId);
+    const inviteRef = doc(firestoreDb, 'groupInvites', inviteId);
     
     const inviteData = {
       id: inviteId,
@@ -487,8 +502,11 @@ export const getPendingInvites = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
-    const invitesRef = collection(db, 'groupInvites');
+    const invitesRef = collection(firestoreDb, 'groupInvites');
     const invitesQuery = query(
       invitesRef,
       where('invitedTo', '==', userId),
@@ -535,9 +553,12 @@ export const acceptGroupInvite = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
     // Buscar o convite
-    const inviteRef = doc(db, 'groupInvites', inviteId);
+    const inviteRef = doc(firestoreDb, 'groupInvites', inviteId);
     const inviteDoc = await getDoc(inviteRef);
     
     if (!inviteDoc.exists()) {
@@ -572,7 +593,7 @@ export const acceptGroupInvite = async (
     });
 
     // Criar referência de membro (não copiar o grupo, apenas referência)
-    const membershipRef = doc(db, 'users', userId, 'groupMemberships', inviteData.groupId);
+    const membershipRef = doc(firestoreDb, 'users', userId, 'groupMemberships', inviteData.groupId);
     await setDoc(membershipRef, {
       groupId: inviteData.groupId,
       userId: userId,
@@ -580,7 +601,7 @@ export const acceptGroupInvite = async (
     });
 
     // Verificar se o usuário já está na lista de membros do grupo
-    const groupRef = doc(db, 'groups', inviteData.groupId);
+    const groupRef = doc(firestoreDb, 'groups', inviteData.groupId);
     const groupDoc = await getDoc(groupRef);
     
     if (groupDoc.exists()) {
@@ -590,7 +611,7 @@ export const acceptGroupInvite = async (
       // Se não estiver na lista de membros, adicionar
       if (!isMember) {
         // Buscar dados do usuário para adicionar como membro
-        const userRef = doc(db, 'users', userId);
+        const userRef = doc(firestoreDb, 'users', userId);
         const userDoc = await getDoc(userRef);
         const userData = userDoc.exists() ? userDoc.data() : null;
         
@@ -636,9 +657,12 @@ export const rejectGroupInvite = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
     // Buscar o convite
-    const inviteRef = doc(db, 'groupInvites', inviteId);
+    const inviteRef = doc(firestoreDb, 'groupInvites', inviteId);
     const inviteDoc = await getDoc(inviteRef);
     
     if (!inviteDoc.exists()) {
@@ -686,8 +710,11 @@ export const getPendingInvitesForGroup = async (
     };
   }
 
+  // Criar variável local para TypeScript entender que db não é undefined
+  const firestoreDb = db;
+
   try {
-    const invitesRef = collection(db, 'groupInvites');
+    const invitesRef = collection(firestoreDb, 'groupInvites');
     const invitesQuery = query(
       invitesRef,
       where('groupId', '==', groupId),
