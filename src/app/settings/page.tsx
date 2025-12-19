@@ -3,6 +3,7 @@
 import { useState } from "react";
 import React from "react";
 import FloatingMenu from "@/components/ui/FloatingMenu";
+import Footer from "@/components/ui/Footer";
 import Header from "@/components/ui/Header";
 import NewGroupModal from "@/components/modals/NewGroupModal";
 import NewIncomeCategoryModal from "@/components/modals/NewIncomeCategoryModal";
@@ -137,6 +138,7 @@ export default function SettingsPage() {
 
       {/* Floating Menu */}
       <FloatingMenu />
+      <Footer />
 
       {/* New/Edit Group Modal */}
       {(showNewGroupModal || editingGroup) && (
@@ -226,19 +228,26 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
 }) {
   const { groups, user } = useApp();
   const [pendingInvites, setPendingInvites] = useState<Record<string, number>>({});
+  const [pendingInvitesData, setPendingInvitesData] = useState<Record<string, string[]>>({}); // groupId -> array de userIds pendentes
   
   // Buscar convites pendentes para cada grupo
+  // Nota: Se o convite existe, ainda está pendente (convites são deletados ao aceitar/recusar)
   React.useEffect(() => {
     const loadPendingInvites = async () => {
       if (!user?.id) return;
       
       const invitesMap: Record<string, number> = {};
+      const invitesDataMap: Record<string, string[]> = {};
       const promises = groups.map(async (group) => {
         try {
           const { getPendingInvitesForGroup } = await import('@/lib/firebase/groups');
-          const result = await getPendingInvitesForGroup(group.id);
-          if (result.success && result.data) {
-            invitesMap[group.id] = result.data.length;
+          
+          // Buscar convites pendentes (se existem, ainda estão pendentes)
+          const invitesResult = await getPendingInvitesForGroup(group.id);
+          if (invitesResult.success && invitesResult.data) {
+            invitesMap[group.id] = invitesResult.data.length;
+            // Guardar os IDs dos usuários que têm convites pendentes
+            invitesDataMap[group.id] = invitesResult.data.map(invite => invite.invitedTo);
           }
         } catch (error) {
           console.error(`Erro ao buscar convites do grupo ${group.id}:`, error);
@@ -247,6 +256,7 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
       
       await Promise.all(promises);
       setPendingInvites(invitesMap);
+      setPendingInvitesData(invitesDataMap);
     };
     
     loadPendingInvites();
@@ -307,10 +317,17 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
           </div>
 
           <div className="space-y-2">
-            {group.members.map((member) => (
+            {group.members.map((member) => {
+              const pendingUserIds = pendingInvitesData[group.id] || [];
+              // Se o membro está na lista de convites pendentes, significa que ainda não aceitou
+              const isPending = pendingUserIds.includes(member.id);
+              
+              return (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                className={`flex items-center justify-between p-2 rounded-lg ${
+                  isPending ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -327,8 +344,17 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
                         />
                       </div>
                     )}
+                    {/* Indicador de convite pendente */}
+                    {isPending && (
+                      <div className="absolute -top-1 -left-1 bg-orange-500 rounded-full w-3 h-3 border-2 border-white"></div>
+                    )}
                   </div>
-                  <span className="text-sm text-gray-700">{member.name}</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-gray-700">{member.name}</span>
+                    {isPending && (
+                      <span className="text-xs text-orange-600 font-medium">Aguardando aceitação</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   {member.isAdmin && (
@@ -343,7 +369,7 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
                   )}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
           </div>
           );

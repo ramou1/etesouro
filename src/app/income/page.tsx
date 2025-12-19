@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import Header from '@/components/ui/Header';
 import FloatingMenu from '@/components/ui/FloatingMenu';
+import Footer from '@/components/ui/Footer';
 import TransactionList from '@/components/TransactionList';
 import TransactionDetailsModal from '@/components/modals/TransactionDetailsModal';
 import { Transaction } from '@/types';
@@ -71,6 +72,9 @@ export default function IncomePage() {
 
       {/* Floating Menu */}
       <FloatingMenu />
+
+      {/* Footer com versão */}
+      <Footer />
 
       {/* Transaction Details Modal */}
       {showTransactionDetails && (

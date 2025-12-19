@@ -204,11 +204,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Carregar transações do Firestore quando o grupo ativo ou usuário mudar
   useEffect(() => {
     const loadTransactions = async () => {
-      if (!activeGroup?.id) return;
+      if (!activeGroup?.id || !user?.id) {
+        // Se não houver grupo ou usuário, definir dados vazios
+        setFinancialData({
+          transactions: [],
+          totalIncome: 0,
+          totalExpenses: 0,
+          balance: 0,
+        });
+        return;
+      }
 
       try {
         // Buscar apenas transações do Firestore
-        const transactions = await getCombinedTransactions(user?.id || null, activeGroup.id);
+        const transactions = await getCombinedTransactions(user.id, activeGroup.id);
         
         // Calcular totais
         const totalIncome = transactions

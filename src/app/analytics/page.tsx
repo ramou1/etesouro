@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import Header from '@/components/ui/Header';
 import FloatingMenu from '@/components/ui/FloatingMenu';
+import Footer from '@/components/ui/Footer';
 import { Transaction } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -162,6 +163,9 @@ export default function AnalyticsPage() {
 
       {/* Floating Menu */}
       <FloatingMenu />
+
+      {/* Footer com versão */}
+      <Footer />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import NewGroupModal from '@/components/modals/NewGroupModal';
 import Header from '@/components/ui/Header';
 import Participants from '@/components/Participants';
 import FloatingMenu from '@/components/ui/FloatingMenu';
+import Footer from '@/components/ui/Footer';
 import { Transaction } from '@/types';
 
 export default function DashboardPage() {
@@ -219,6 +220,9 @@ export default function DashboardPage() {
 
       {/* Floating Menu */}
       <FloatingMenu />
+
+      {/* Footer com versão */}
+      <Footer />
 
       {/* Transaction Modal */}
       {showTransactionModal && (

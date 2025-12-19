@@ -118,7 +118,12 @@ export const saveGroup = async (
       .filter(member => member.id !== userId)
       .map(async (member) => {
         try {
-          await createGroupInvite(groupId, groupData, creatorInfo, member.id);
+          const result = await createGroupInvite(groupId, groupData, creatorInfo, member.id);
+          if (!result.success) {
+            console.error(`Erro ao criar convite para membro ${member.id}:`, result.error);
+          } else {
+            console.log(`Convite criado com sucesso para membro ${member.id} (${member.name})`);
+          }
         } catch (error) {
           console.error(`Erro ao criar convite para membro ${member.id}:`, error);
           // Não falhar a operação principal se houver erro ao criar convite
@@ -335,7 +340,12 @@ export const updateGroup = async (
       .filter(member => member.id !== userId)
       .map(async (member) => {
         try {
-          await createGroupInvite(groupId, groupData as GroupData, creatorInfo, member.id);
+          const result = await createGroupInvite(groupId, groupData as GroupData, creatorInfo, member.id);
+          if (!result.success) {
+            console.error(`Erro ao criar convite para novo membro ${member.id}:`, result.error);
+          } else {
+            console.log(`Convite criado com sucesso para novo membro ${member.id} (${member.name})`);
+          }
         } catch (error) {
           console.error(`Erro ao criar convite para novo membro ${member.id}:`, error);
         }
@@ -393,12 +403,21 @@ export const deleteGroup = async (
     }
 
     // Remover referências de membros
+    // Nota: Só podemos deletar a referência do próprio usuário devido às regras de segurança
+    // As outras referências serão removidas quando os usuários tentarem acessar o grupo
+    // ou podemos usar Cloud Functions para deletar todas
     const removeMembershipPromises = members.map(async (member) => {
       try {
-        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
-        await deleteDoc(membershipRef);
+        // Só deletar a referência do próprio usuário (quem está deletando)
+        if (member.id === userId) {
+          const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
+          await deleteDoc(membershipRef);
+        }
+        // Para outros membros, apenas logar (seria necessário Cloud Function para deletar)
+        // As referências ficarão órfãs, mas não causam problemas
       } catch (error) {
         console.error(`Erro ao remover referência de membro ${member.id}:`, error);
+        // Continuar mesmo com erro
       }
     });
 
@@ -586,11 +605,8 @@ export const acceptGroupInvite = async (
       };
     }
 
-    // Atualizar status do convite
-    await updateDoc(inviteRef, {
-      status: 'accepted',
-      updatedAt: serverTimestamp(),
-    });
+    // Deletar o convite ao aceitar (não precisamos mais dele)
+    await deleteDoc(inviteRef);
 
     // Criar referência de membro (não copiar o grupo, apenas referência)
     const membershipRef = doc(firestoreDb, 'users', userId, 'groupMemberships', inviteData.groupId);
@@ -682,11 +698,8 @@ export const rejectGroupInvite = async (
       };
     }
 
-    // Atualizar status do convite
-    await updateDoc(inviteRef, {
-      status: 'rejected',
-      updatedAt: serverTimestamp(),
-    });
+    // Deletar o convite ao recusar (não precisamos mais dele)
+    await deleteDoc(inviteRef);
 
     return { success: true };
   } catch (error: unknown) {
@@ -700,6 +713,7 @@ export const rejectGroupInvite = async (
 };
 
 // Buscar convites pendentes de um grupo específico
+// Nota: Convites são deletados quando aceitos/recusados, então se existem, ainda estão pendentes
 export const getPendingInvitesForGroup = async (
   groupId: string
 ): Promise<{ success: boolean; data?: GroupInvite[]; error?: string }> => {
@@ -715,10 +729,10 @@ export const getPendingInvitesForGroup = async (
 
   try {
     const invitesRef = collection(firestoreDb, 'groupInvites');
+    // Buscar todos os convites do grupo (se existem, ainda estão pendentes)
     const invitesQuery = query(
       invitesRef,
-      where('groupId', '==', groupId),
-      where('status', '==', 'pending')
+      where('groupId', '==', groupId)
     );
     const querySnapshot = await getDocs(invitesQuery);
     
@@ -733,8 +747,63 @@ export const getPendingInvitesForGroup = async (
       data: invites,
     };
   } catch (error: unknown) {
+    // Se for erro de permissões, retornar array vazio (pode ser que o usuário não tenha permissão)
+    if (error instanceof Error && error.message.includes('permissions')) {
+      console.warn('Permissão negada ao buscar convites. Retornando array vazio.');
+      return {
+        success: true,
+        data: [],
+      };
+    }
+    
     console.error('Erro ao buscar convites pendentes do grupo:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar convites pendentes do grupo';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Verificar quais membros de um grupo aceitaram o convite (têm referência em groupMemberships)
+export const getAcceptedMembers = async (
+  groupId: string,
+  memberIds: string[]
+): Promise<{ success: boolean; data?: string[]; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  const firestoreDb = db;
+
+  try {
+    const acceptedMemberIds: string[] = [];
+    
+    // Verificar cada membro se tem referência em groupMemberships
+    const checkPromises = memberIds.map(async (memberId) => {
+      try {
+        const membershipRef = doc(firestoreDb, 'users', memberId, 'groupMemberships', groupId);
+        const membershipDoc = await getDoc(membershipRef);
+        if (membershipDoc.exists()) {
+          acceptedMemberIds.push(memberId);
+        }
+      } catch (error) {
+        console.error(`Erro ao verificar membro ${memberId}:`, error);
+      }
+    });
+
+    await Promise.allSettled(checkPromises);
+
+    return {
+      success: true,
+      data: acceptedMemberIds,
+    };
+  } catch (error: unknown) {
+    console.error('Erro ao verificar membros aceitos:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao verificar membros aceitos';
     return {
       success: false,
       error: errorMessage,

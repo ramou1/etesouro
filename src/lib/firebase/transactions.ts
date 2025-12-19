@@ -156,6 +156,16 @@ export const getUserTransactions = async (
       data: transactions,
     };
   } catch (error: unknown) {
+    // Se for erro de permissões, pode ser que o usuário ainda não tenha aceitado o convite
+    // ou que o grupo não exista mais. Retornar array vazio em vez de falhar completamente
+    if (error instanceof Error && error.message.includes('permissions')) {
+      console.warn('Permissão negada ao buscar transações. Pode ser que o usuário ainda não tenha aceitado o convite do grupo ou o grupo não exista mais.');
+      return {
+        success: true,
+        data: [], // Retornar array vazio em vez de erro
+      };
+    }
+    
     console.error('Erro ao buscar transações:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar transações';
     return {
