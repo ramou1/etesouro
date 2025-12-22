@@ -1,9 +1,19 @@
+export type PlanPeriod = 'monthly' | 'semiannual' | 'annual';
+
+export interface UserPlan {
+  period: PlanPeriod;
+  purchaseDate?: string; // Data de compra no formato ISO (YYYY-MM-DD)
+  expirationDate?: string; // Data de expiração no formato ISO (YYYY-MM-DD)
+  isActive?: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
   avatar?: string;
   isAuthenticated: boolean;
+  plan?: UserPlan;
 }
 
 export interface AuthUser {

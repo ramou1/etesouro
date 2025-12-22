@@ -2,12 +2,20 @@
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp, collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from './config';
 
+import { PlanPeriod, UserPlan } from '@/types';
+
 export interface UserData {
   id: string;
   name: string;
   email: string;
   avatar?: string;
   allowGroupInvites?: boolean;
+  plan?: {
+    period: PlanPeriod;
+    purchaseDate?: string; // Data de compra no formato ISO (YYYY-MM-DD)
+    expirationDate?: string; // Data de expiração no formato ISO (YYYY-MM-DD)
+    isActive?: boolean;
+  };
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
 }

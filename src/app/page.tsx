@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -14,7 +15,41 @@ import {
   Zap
 } from 'lucide-react';
 
+type PlanPeriod = 'monthly' | 'semiannual' | 'annual';
+
+interface PlanPrice {
+  total: number;
+  monthly: number;
+  period: string;
+  periodLabel: string;
+}
+
 export default function HomePage() {
+  const [selectedPeriod, setSelectedPeriod] = useState<PlanPeriod>('monthly');
+
+  const plans: Record<PlanPeriod, PlanPrice> = {
+    monthly: {
+      total: 19.90,
+      monthly: 19.90,
+      period: 'mês',
+      periodLabel: 'Mensal'
+    },
+    semiannual: {
+      total: 99.90,
+      monthly: 16.65, // 99.90 / 6
+      period: '6 meses',
+      periodLabel: 'Semestral'
+    },
+    annual: {
+      total: 189.90,
+      monthly: 15.83, // 189.90 / 12
+      period: 'ano',
+      periodLabel: 'Anual'
+    }
+  };
+
+  const currentPlan = plans[selectedPeriod];
+
   // Landing Page
   return (
     <div className="min-h-screen bg-white">
@@ -233,10 +268,62 @@ export default function HomePage() {
             Planos e Preços
           </h2>
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-2xl">
+            {/* Toggle de Períodos */}
             <div className="mb-8">
-              <div className="flex items-baseline justify-center gap-2 mb-4">
-                <span className="text-5xl font-bold text-gray-900">R$ 19,90</span>
-                <span className="text-2xl text-gray-600">/mês</span>
+              <div className="flex items-center justify-center gap-2 bg-gray-100 rounded-lg p-1 max-w-md mx-auto">
+                <button
+                  onClick={() => setSelectedPeriod('monthly')}
+                  className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+                    selectedPeriod === 'monthly'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Mensal
+                </button>
+                <button
+                  onClick={() => setSelectedPeriod('semiannual')}
+                  className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+                    selectedPeriod === 'semiannual'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Semestral
+                </button>
+                <button
+                  onClick={() => setSelectedPeriod('annual')}
+                  className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+                    selectedPeriod === 'annual'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Anual
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <div className="flex flex-col items-center justify-center gap-2 mb-4">
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-5xl font-bold text-gray-900">
+                    R$ {currentPlan.total.toFixed(2).replace('.', ',')}
+                  </span>
+                  {selectedPeriod !== 'monthly' && (
+                    <span className="text-2xl text-gray-600">
+                      /{currentPlan.period}
+                    </span>
+                  )}
+                  {selectedPeriod === 'monthly' && (
+                    <span className="text-2xl text-gray-600">/mês</span>
+                  )}
+                </div>
+                {selectedPeriod !== 'monthly' && (
+                  <p className="text-base text-gray-500">
+                    equivalente a R$ {currentPlan.monthly.toFixed(2).replace('.', ',')}/mês*
+                  </p>
+                )}
               </div>
               <p className="text-base text-gray-600 mb-8">
                 Planos flexíveis e acessíveis para você e sua família.
@@ -260,7 +347,12 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="text-yellow-600 flex-shrink-0" size={24} />
-                  <span className="text-gray-700">Apenas R$ 19,90/mês</span>
+                  <span className="text-gray-700">
+                    {selectedPeriod === 'monthly' 
+                      ? `Apenas R$ ${currentPlan.total.toFixed(2).replace('.', ',')}/mês`
+                      : `Economize com o plano ${currentPlan.periodLabel}`
+                    }
+                  </span>
                 </li>
               </ul>
             </div>

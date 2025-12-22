@@ -5,17 +5,24 @@ import { X, Save, User as UserIcon, Mail, Crown, Users } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import Avatar from '@/components/ui/Avatar';
 import { getUserData } from '@/lib/firebase/user';
+import { UserPlan, PlanPeriod } from '@/types';
 
 interface ProfileModalProps {
   onClose: () => void;
 }
 
-interface PlanInfo {
-  name: string;
-  type: string;
-  purchaseDate: string;
-  expirationDate: string;
-}
+const getPlanLabel = (period?: PlanPeriod): string => {
+  switch (period) {
+    case 'monthly':
+      return 'Mensal';
+    case 'semiannual':
+      return 'Semestral';
+    case 'annual':
+      return 'Anual';
+    default:
+      return 'Sem plano';
+  }
+};
 
 export default function ProfileModal({ onClose }: ProfileModalProps) {
   const { user, updateUserProfile, updateAllowGroupInvites } = useApp();
@@ -25,14 +32,6 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
   const [isLoadingInvites, setIsLoadingInvites] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  // Dados mockados do plano
-  const planInfo: PlanInfo = {
-    name: 'Plano Premium',
-    type: 'Mensal',
-    purchaseDate: '01/12/2024',
-    expirationDate: '31/12/2025'
-  };
 
   useEffect(() => {
     if (user?.name) {
@@ -200,24 +199,44 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
                 <Crown size={16} className="text-yellow-600" />
                 Plano Atual
               </h3>
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Nome do Plano:</span>
-                  <span className="text-sm font-semibold text-gray-900">{planInfo.name}</span>
+              {user?.plan ? (
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tipo:</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {getPlanLabel(user.plan.period)}
+                    </span>
+                  </div>
+                  {user.plan.purchaseDate && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Data de Compra:</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {new Date(user.plan.purchaseDate).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  )}
+                  {user.plan.expirationDate && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Data de Expiração:</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {new Date(user.plan.expirationDate).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <span className={`text-sm font-semibold ${
+                      user.plan.isActive ? 'text-green-600' : 'text-gray-500'
+                    }`}>
+                      {user.plan.isActive ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Tipo:</span>
-                  <span className="text-sm font-semibold text-gray-900">{planInfo.type}</span>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <p className="text-sm text-gray-600">Nenhum plano ativo</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Data de Compra:</span>
-                  <span className="text-sm font-semibold text-gray-900">{planInfo.purchaseDate}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Data de Expiração:</span>
-                  <span className="text-sm font-semibold text-gray-900">{planInfo.expirationDate}</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Mensagens de Erro e Sucesso */}
