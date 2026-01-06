@@ -78,21 +78,19 @@ export const saveGroup = async (
 
     await setDoc(groupRef, groupData);
 
-    // Criar referências de membros para todos os membros do grupo
-    const membershipPromises = membersWithGroupId.map(async (member) => {
-      try {
-        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
-        await setDoc(membershipRef, {
-          groupId,
-          userId: member.id,
-          joinedAt: serverTimestamp(),
-        });
-      } catch (error) {
-        console.error(`Erro ao criar referência de membro ${member.id}:`, error);
-      }
-    });
-
-    await Promise.allSettled(membershipPromises);
+    // Criar referência de membro apenas para o criador do grupo
+    // Outros membros criarão a referência ao aceitar o convite
+    try {
+      const creatorMembershipRef = doc(firestoreDb, 'users', userId, 'groupMemberships', groupId);
+      await setDoc(creatorMembershipRef, {
+        groupId,
+        userId: userId,
+        joinedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error(`Erro ao criar referência de membro para o criador ${userId}:`, error);
+      // Não falhar a criação do grupo se houver erro ao criar referência do criador
+    }
 
     // Criar limites de orçamento padrão para o grupo
     try {
@@ -298,31 +296,21 @@ export const updateGroup = async (
     const newMembers = membersWithGroupId.filter(m => !oldMemberIds.includes(m.id));
     const removedMembers = oldMembers.filter(m => !membersWithGroupId.some(nm => nm.id === m.id));
 
-    // Criar referências para novos membros
-    const addMembershipPromises = newMembers.map(async (member) => {
-      try {
-        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
-        await setDoc(membershipRef, {
-          groupId,
-          userId: member.id,
-          joinedAt: serverTimestamp(),
-        });
-      } catch (error) {
-        console.error(`Erro ao criar referência para novo membro ${member.id}:`, error);
-      }
-    });
+    // Não criar referências para novos membros aqui - eles criarão ao aceitar o convite
+    // Apenas remover referências de membros removidos (se o usuário atual tiver permissão)
+    // Nota: Só podemos remover a referência do próprio usuário devido às regras de segurança
+    const removeMembershipPromises = removedMembers
+      .filter(member => member.id === userId) // Só remover se for o próprio usuário
+      .map(async (member) => {
+        try {
+          const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
+          await deleteDoc(membershipRef);
+        } catch (error) {
+          console.error(`Erro ao remover referência de membro ${member.id}:`, error);
+        }
+      });
 
-    // Remover referências de membros removidos
-    const removeMembershipPromises = removedMembers.map(async (member) => {
-      try {
-        const membershipRef = doc(firestoreDb, 'users', member.id, 'groupMemberships', groupId);
-        await deleteDoc(membershipRef);
-      } catch (error) {
-        console.error(`Erro ao remover referência de membro ${member.id}:`, error);
-      }
-    });
-
-    await Promise.allSettled([...addMembershipPromises, ...removeMembershipPromises]);
+    await Promise.allSettled(removeMembershipPromises);
 
     // Buscar dados do criador para incluir no convite
     const creatorRef = doc(firestoreDb, 'users', userId);
