@@ -22,7 +22,7 @@ import { deleteGroupTransactions } from './transactions';
 export interface GroupData {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   members: GroupMember[];
   isTemporary: boolean;
   createdBy: string; // userId do criador
@@ -68,7 +68,7 @@ export const saveGroup = async (
     const groupData: GroupData = {
       id: groupId,
       title: group.title,
-      description: group.description || undefined,
+      ...(group.description?.trim() ? { description: group.description.trim() } : {}),
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
       createdBy: userId,
@@ -276,10 +276,10 @@ export const updateGroup = async (
       groupId: groupId
     }));
 
-    const groupData = {
+    const groupData: Partial<GroupData> = {
       id: groupId,
       title: group.title,
-      description: group.description || undefined,
+      ...(group.description?.trim() ? { description: group.description.trim() } : {}),
       members: membersWithGroupId,
       isTemporary: group.isTemporary,
       updatedAt: serverTimestamp(),

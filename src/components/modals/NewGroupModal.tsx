@@ -175,9 +175,9 @@ export default function NewGroupModal({ onClose, group, onDelete }: NewGroupModa
         allMembers = [currentUserAsMember, ...selectedMembers];
       }
 
-      const groupData = {
+      const groupData: Omit<Group, 'id'> = {
         title: title,
-        description: description,
+        ...(description?.trim() ? { description: description.trim() } : {}),
         isTemporary: isTemporary,
         members: allMembers
       };
