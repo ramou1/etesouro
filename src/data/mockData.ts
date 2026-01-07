@@ -99,17 +99,17 @@ export const MOCK_INCOME_CATEGORIES: Category[] = [
 
 export const MOCK_EXPENSE_CATEGORIES: Category[] = [
   { id: '1', title: 'Alimentação', color: '#FFE4E1', type: 'expense' },
-  { id: '2', title: 'Transporte', color: '#DBEAFE', type: 'expense' },
-  { id: '3', title: 'Saúde', color: '#DBFCE7', type: 'expense' },
-  { id: '4', title: 'Lazer', color: '#F3E8FF', type: 'expense' },
+  { id: '2', title: 'Aluguel', color: '#DBEAFE', type: 'expense' },
+  { id: '3', title: 'Água', color: '#DBFCE7', type: 'expense' },
+  { id: '4', title: 'Condomínio', color: '#D4F0F0', type: 'expense' },
   { id: '5', title: 'Educação', color: '#FEF9C2', type: 'expense' },
-  { id: '6', title: 'Moradia', color: '#D4F0F0', type: 'expense' },
-  { id: '7', title: 'Roupas', color: '#FFD6E7', type: 'expense' },
-  { id: '8', title: 'Aluguel', color: '#FFE4E1', type: 'expense' },
-  { id: '9', title: 'Água', color: '#DBEAFE', type: 'expense' },
-  { id: '10', title: 'Condomínio', color: '#D4F0F0', type: 'expense' },
-  { id: '11', title: 'Luz', color: '#FEF9C2', type: 'expense' },
-  { id: '12', title: 'Plano de Saúde', color: '#DBFCE7', type: 'expense' },
+  { id: '6', title: 'Lazer', color: '#F3E8FF', type: 'expense' },
+  { id: '7', title: 'Luz', color: '#FEF9C2', type: 'expense' },
+  { id: '8', title: 'Moradia', color: '#D4F0F0', type: 'expense' },
+  { id: '9', title: 'Plano de Saúde', color: '#DBFCE7', type: 'expense' },
+  { id: '10', title: 'Roupas', color: '#FFD6E7', type: 'expense' },
+  { id: '11', title: 'Saúde', color: '#DBEAFE', type: 'expense' },
+  { id: '12', title: 'Transporte', color: '#FFE4E1', type: 'expense' },  
   { id: '13', title: 'Telefone', color: '#F3E8FF', type: 'expense' }
 ];
 

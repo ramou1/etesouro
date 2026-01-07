@@ -118,10 +118,10 @@ export default function Header() {
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <span className="text-sm font-semibold text-gray-800 hidden sm:block">
-                  {user.name}
+                  {user.name.split(' ')[0] || 'Usuário'}
                 </span>
                 <Avatar 
-                  name={user.name || user.email || 'Usuário'}
+                  name={user.name || 'Usuário'}
                   size={32}
                   className="border-2 border-gray-200"
                 />

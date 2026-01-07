@@ -74,43 +74,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Usar dados do Firestore se existirem
           appUser = {
             id: userDataResult.data.id,
-            name: userDataResult.data.name,
+            name: userDataResult.data.name || 'Usuário',
             email: userDataResult.data.email,
             avatar: userDataResult.data.avatar,
             isAuthenticated: true,
           };
         } else {
-          // Se não houver dados no Firestore, tentar usar displayName ou email como fallback
-          const fallbackName = firebaseUser.displayName || 
-                               (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Usuário');
-          
+          // Se não houver dados no Firestore, usar fallback simples
           appUser = {
             id: firebaseUser.uid,
-            name: fallbackName,
+            name: 'Usuário',
             email: firebaseUser.email || '',
             avatar: firebaseUser.photoURL || undefined,
             isAuthenticated: true,
           };
-          
-          // Salvar dados no Firestore (para migrar usuários antigos)
-          await saveUserData({
-            id: firebaseUser.uid,
-            name: fallbackName,
-            email: appUser.email,
-            avatar: appUser.avatar,
-          });
-          
-          // Tentar buscar novamente do Firestore após salvar (pode ter sido uma condição de corrida)
-          const retryUserData = await getUserData(firebaseUser.uid);
-          if (retryUserData.success && retryUserData.data) {
-            appUser = {
-              id: retryUserData.data.id,
-              name: retryUserData.data.name,
-              email: retryUserData.data.email,
-              avatar: retryUserData.data.avatar,
-              isAuthenticated: true,
-            };
-          }
         }
         
         setUser(appUser);
