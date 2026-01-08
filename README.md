@@ -13,6 +13,7 @@ Um aplicativo web para controle de finanças pessoais focado em evitar endividam
 - **Configurações**: Página completa com todas as configurações
 - **Relatórios**: Análise financeira com estatísticas detalhadas e gráficos interativos
 - **Saldo Automático**: Cálculo automático do saldo (receitas - despesas)
+- **Sistema de Ajuda/Feedback**: Modal para enviar sugestões, dúvidas, reportar bugs e outros tipos de feedback
 - **Interface Mobile**: Design responsivo otimizado para celulares
 - **Dados Centralizados**: Sistema de dados mockados para desenvolvimento
 - **Navegação Intuitiva**: Bottom tabs com navegação fluida
@@ -72,6 +73,7 @@ O aplicativo foi projetado com foco mobile, incluindo:
 4. **Categorizar**: Selecione categorias ao adicionar transações
 5. **Configurar**: Acesse configurações para gerenciar grupos e categorias
 6. **Relatórios**: Visualize análises detalhadas na página de relatórios
+7. **Ajuda/Feedback**: Acesse o menu do usuário no cabeçalho e selecione "Ajuda" para enviar sugestões, dúvidas ou reportar problemas
 
 ## 🔧 Estrutura do Projeto
 
@@ -89,6 +91,10 @@ src/
 │   ├── layout.tsx         # Layout principal
 │   └── page.tsx           # Página inicial
 ├── components/            # Componentes React
+│   ├── modals/           # Modais do sistema
+│   │   ├── HelpModal.tsx        # Modal de ajuda/feedback
+│   │   ├── ProfileModal.tsx     # Modal de perfil
+│   │   └── GroupInvitesModal.tsx # Modal de convites
 │   ├── BottomTabs.tsx     # Navegação inferior
 │   ├── Header.tsx         # Cabeçalho
 │   ├── NewGroupModal.tsx  # Modal de novo grupo
@@ -101,6 +107,10 @@ src/
 ├── data/                  # Dados mockados
 │   └── mockData.ts        # Dados centralizados
 ├── lib/                   # Utilitários
+│   ├── firebase/         # Serviços Firebase
+│   │   ├── feedback.ts    # Serviço de feedback
+│   │   ├── groups.ts      # Serviço de grupos
+│   │   └── ...
 │   └── utils.ts           # Funções auxiliares
 └── types/                 # Definições TypeScript
     └── index.ts           # Interfaces e tipos

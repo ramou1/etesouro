@@ -65,6 +65,17 @@ service cloud.firestore {
       allow delete: if request.auth != null && 
                      resource.data.invitedTo == request.auth.uid;
     }
+    
+    // ========== FEEDBACK/SUPORTE ==========
+    // Usuários autenticados podem criar feedbacks
+    // Apenas administradores podem ler (ou você pode permitir leitura autenticada)
+    match /feedbacks/{feedbackId} {
+      allow create: if request.auth != null && 
+                     request.resource.data.userId == request.auth.uid;
+      // Para MVP: Permitir leitura apenas autenticada (ou remover se não precisar ler no app)
+      allow read: if request.auth != null;
+      // Não permitir atualização ou deleção de feedbacks (uma vez enviados, ficam registrados)
+    }
   }
 }
 ```
@@ -88,6 +99,12 @@ service cloud.firestore {
    - Usuários podem ler apenas seus próprios convites
    - Qualquer usuário autenticado pode criar convites
    - Apenas o convidado pode atualizar (aceitar/recusar)
+
+### 5. **Feedback/Suporte (`feedbacks`)**
+   - Usuários autenticados podem criar feedbacks
+   - O userId do feedback deve corresponder ao usuário autenticado
+   - Usuários autenticados podem ler feedbacks (para visualização no painel admin, se houver)
+   - Feedbacks não podem ser editados ou deletados (mantém histórico)
 
 ## Importante para MVP
 

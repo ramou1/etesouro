@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from "@/context/AppContext";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import { LogOut, UserPlus, User } from 'lucide-react';
+import { LogOut, UserPlus, User, HelpCircle } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import GroupInvitesModal from '@/components/modals/GroupInvitesModal';
 import ProfileModal from '@/components/modals/ProfileModal';
+import HelpModal from '@/components/modals/HelpModal';
 import { getPendingInvites } from '@/lib/firebase/groups';
 
 export default function Header() {
@@ -16,6 +17,7 @@ export default function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showInvitesModal, setShowInvitesModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [pendingInvitesCount, setPendingInvitesCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const invitesRef = useRef<HTMLDivElement>(null);
@@ -141,6 +143,16 @@ export default function Header() {
                   <span>Perfil</span>
                 </button>
                 <button
+                  onClick={() => {
+                    setShowHelpModal(true);
+                    setShowDropdown(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <HelpCircle size={18} className="text-gray-500" />
+                  <span>Ajuda</span>
+                </button>
+                <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
@@ -175,6 +187,15 @@ export default function Header() {
           <ProfileModal
             onClose={() => {
               setShowProfileModal(false);
+            }}
+          />
+        )}
+
+        {/* Modal de Ajuda */}
+        {showHelpModal && (
+          <HelpModal
+            onClose={() => {
+              setShowHelpModal(false);
             }}
           />
         )}
