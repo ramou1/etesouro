@@ -24,8 +24,11 @@ import {
   Crown,
   Settings as SettingsIcon,
   Minus,
+  Check,
+  XCircle,
 } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
+import { getPendingInvites, acceptGroupInvite, rejectGroupInvite, GroupInvite } from '@/lib/firebase/groups';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("groups");
@@ -226,11 +229,35 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
   onEditGroup: (group: Group) => void;
   onDeleteGroup: (group: Group) => void;
 }) {
-  const { groups, user } = useApp();
+  const { groups, user, reloadCategoriesAndGroups } = useApp();
   const [pendingInvites, setPendingInvites] = useState<Record<string, number>>({});
   const [pendingInvitesData, setPendingInvitesData] = useState<Record<string, string[]>>({}); // groupId -> array de userIds pendentes
+  const [receivedInvites, setReceivedInvites] = useState<GroupInvite[]>([]);
+  const [isLoadingInvites, setIsLoadingInvites] = useState(true);
+  const [processingInviteId, setProcessingInviteId] = useState<string | null>(null);
   
-  // Buscar convites pendentes para cada grupo
+  // Buscar convites recebidos (onde o usuário é o convidado)
+  React.useEffect(() => {
+    const loadReceivedInvites = async () => {
+      if (!user?.id) return;
+      
+      setIsLoadingInvites(true);
+      try {
+        const result = await getPendingInvites(user.id);
+        if (result.success && result.data) {
+          setReceivedInvites(result.data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar convites recebidos:', error);
+      } finally {
+        setIsLoadingInvites(false);
+      }
+    };
+    
+    loadReceivedInvites();
+  }, [user?.id]);
+
+  // Buscar convites pendentes para cada grupo (convites enviados)
   // Nota: Se o convite existe, ainda está pendente (convites são deletados ao aceitar/recusar)
   React.useEffect(() => {
     const loadPendingInvites = async () => {
@@ -262,6 +289,53 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
     loadPendingInvites();
   }, [groups, user?.id]);
 
+  const handleAcceptInvite = async (inviteId: string) => {
+    if (!user?.id) return;
+
+    setProcessingInviteId(inviteId);
+    try {
+      const result = await acceptGroupInvite(inviteId, user.id);
+      if (result.success) {
+        await reloadCategoriesAndGroups();
+        // Recarregar convites recebidos
+        const invitesResult = await getPendingInvites(user.id);
+        if (invitesResult.success && invitesResult.data) {
+          setReceivedInvites(invitesResult.data);
+        }
+      } else {
+        alert(result.error || 'Erro ao aceitar convite');
+      }
+    } catch (error) {
+      console.error('Erro ao aceitar convite:', error);
+      alert('Erro ao aceitar convite. Tente novamente.');
+    } finally {
+      setProcessingInviteId(null);
+    }
+  };
+
+  const handleRejectInvite = async (inviteId: string) => {
+    if (!user?.id) return;
+
+    setProcessingInviteId(inviteId);
+    try {
+      const result = await rejectGroupInvite(inviteId, user.id);
+      if (result.success) {
+        // Recarregar convites recebidos
+        const invitesResult = await getPendingInvites(user.id);
+        if (invitesResult.success && invitesResult.data) {
+          setReceivedInvites(invitesResult.data);
+        }
+      } else {
+        alert(result.error || 'Erro ao recusar convite');
+      }
+    } catch (error) {
+      console.error('Erro ao recusar convite:', error);
+      alert('Erro ao recusar convite. Tente novamente.');
+    } finally {
+      setProcessingInviteId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -274,6 +348,68 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
           Novo Grupo
         </button>
       </div>
+
+      {/* Seção de Convites Recebidos */}
+      {receivedInvites.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+          <h3 className="text-md font-semibold text-gray-800 mb-3">
+            Convites Pendentes ({receivedInvites.length})
+          </h3>
+          <div className="space-y-3">
+            {receivedInvites.map((invite) => (
+              <div
+                key={invite.id}
+                className="bg-white border border-yellow-300 rounded-lg p-4"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <Avatar
+                    name={invite.invitedBy.name}
+                    size={40}
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">
+                      {invite.invitedBy.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      convidou você para o grupo
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                  <h4 className="font-semibold text-gray-800 mb-1">
+                    {invite.groupData.title}
+                  </h4>
+                  {invite.groupData.description && (
+                    <p className="text-sm text-gray-600">
+                      {invite.groupData.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAcceptInvite(invite.id)}
+                    disabled={processingInviteId === invite.id}
+                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    <Check size={16} />
+                    Aceitar
+                  </button>
+                  <button
+                    onClick={() => handleRejectInvite(invite.id)}
+                    disabled={processingInviteId === invite.id}
+                    className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    <XCircle size={16} />
+                    Recusar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {groups.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
