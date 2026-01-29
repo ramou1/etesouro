@@ -11,7 +11,7 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { registerWithEmail, loginWithEmail, signOut as firebaseSignOut } from '@/lib/firebase/auth';
-import { getUserData, saveUserData, updateUserName, updateAllowGroupInvites as updateAllowGroupInvitesFirebase } from '@/lib/firebase/user';
+import { getUserData, saveUserData, updateUserName, updateAllowGroupInvites as updateAllowGroupInvitesFirebase, updatePinnedGroup } from '@/lib/firebase/user';
 import { getCombinedCategories, getCombinedGroups, getCombinedTransactions } from '@/lib/firebase/dataHelpers';
 import { saveTransaction, deleteTransaction, updateTransaction as updateTransactionFirebase } from '@/lib/firebase/transactions';
 
@@ -23,7 +23,7 @@ interface AppContextType {
   groups: Group[];
   incomeCategories: Category[];
   expenseCategories: Category[];
-  reloadCategoriesAndGroups: () => Promise<void>;
+  reloadCategoriesAndGroups: (overridePinnedGroupId?: string | null) => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
   updateTransaction: (id: string, transaction: Partial<Omit<Transaction, 'id'>>) => Promise<void>;
   removeTransaction: (id: string) => Promise<void>;
@@ -32,6 +32,8 @@ interface AppContextType {
   register: (name: string, email: string, password: string, allowGroupInvites?: boolean) => Promise<{ success: boolean; error?: string }>;
   updateUserProfile: (name: string) => Promise<{ success: boolean; error?: string }>;
   updateAllowGroupInvites: (allowGroupInvites: boolean) => Promise<{ success: boolean; error?: string }>;
+  setPinnedGroup: (groupId: string | null) => Promise<{ success: boolean; error?: string }>;
+  pinnedGroupId: string | null;
   selectedParticipants: string[];
   toggleParticipant: (participantId: string) => void;
   getFilteredFinancialData: () => FinancialData;
@@ -78,6 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: userDataResult.data.email,
             avatar: userDataResult.data.avatar,
             isAuthenticated: true,
+            pinnedGroupId: userDataResult.data.pinnedGroupId ?? null,
           };
         } else {
           // Se não houver dados no Firestore, usar fallback simples
@@ -87,6 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: firebaseUser.email || '',
             avatar: firebaseUser.photoURL || undefined,
             isAuthenticated: true,
+            pinnedGroupId: null,
           };
         }
         
@@ -106,7 +110,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Função para carregar categorias e grupos do Firestore
-  const loadCategoriesAndGroups = React.useCallback(async () => {
+  const loadCategoriesAndGroups = React.useCallback(async (overridePinnedGroupId?: string | null) => {
     if (!user?.id) {
       // Se não há usuário, usar apenas dados mockados
       setGroups(MOCK_GROUPS);
@@ -141,21 +145,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // Carregar e combinar grupos
       const combinedGroups = await getCombinedGroups(user.id);
-      setGroups(combinedGroups);
+      const pinnedId = overridePinnedGroupId ?? user.pinnedGroupId ?? null;
 
-      // Se o grupo ativo não estiver mais na lista, usar o primeiro (se houver grupos)
+      // Ordenar: grupo fixado primeiro, depois os demais
+      const sortedGroups =
+        pinnedId && combinedGroups.some(g => g.id === pinnedId)
+          ? [
+              combinedGroups.find(g => g.id === pinnedId)!,
+              ...combinedGroups.filter(g => g.id !== pinnedId),
+            ]
+          : combinedGroups;
+      setGroups(sortedGroups);
+
+      // Se o grupo ativo não estiver mais na lista, usar o fixado ou o primeiro
       setActiveGroup(prevActiveGroup => {
-        if (combinedGroups.length > 0) {
-          // Se o grupo ativo ainda existe na lista, mantê-lo
-          const stillExists = combinedGroups.find(g => g.id === prevActiveGroup.id);
+        if (sortedGroups.length > 0) {
+          const stillExists = sortedGroups.find(g => g.id === prevActiveGroup.id);
           if (stillExists) {
             return prevActiveGroup;
           }
-          // Caso contrário, usar o primeiro grupo da lista
-          return combinedGroups[0];
+          // Preferir grupo fixado como ativo ao carregar
+          const pinnedGroup = pinnedId ? sortedGroups.find(g => g.id === pinnedId) : null;
+          return pinnedGroup ?? sortedGroups[0];
         }
-        // Se não houver grupos, manter o grupo anterior (pode ser mockado)
-        // O Dashboard vai verificar se há grupos e mostrar mensagem apropriada
         return prevActiveGroup;
       });
     } catch (error) {
@@ -165,7 +177,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIncomeCategories([]);
       setExpenseCategories([]);
     }
-  }, [user?.id]);
+  }, [user?.id, user?.pinnedGroupId]);
 
   // Carregar categorias e grupos do Firestore quando o usuário mudar
   useEffect(() => {
@@ -174,8 +186,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [user?.id]);
 
   // Função para recarregar categorias e grupos (útil após criar novos)
-  const reloadCategoriesAndGroups = async () => {
-    await loadCategoriesAndGroups();
+  const reloadCategoriesAndGroups = async (overridePinnedGroupId?: string | null) => {
+    await loadCategoriesAndGroups(overridePinnedGroupId);
   };
 
   // Carregar transações do Firestore quando o grupo ativo ou usuário mudar
@@ -449,6 +461,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setPinnedGroup = async (groupId: string | null): Promise<{ success: boolean; error?: string }> => {
+    if (!user?.id) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      if (auth) {
+        const result = await updatePinnedGroup(user.id, groupId);
+        if (result.success) {
+          const updatedUser = { ...user, pinnedGroupId: groupId };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          await reloadCategoriesAndGroups(groupId);
+        }
+        return result;
+      } else {
+        const updatedUser = { ...user, pinnedGroupId: groupId };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Erro ao fixar grupo:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao fixar grupo';
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const getFilteredFinancialData = (): FinancialData => {
     // Se nenhum participante está desabilitado, retorna os dados completos do grupo ativo
     if (selectedParticipants.length === 0) {
@@ -485,6 +525,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activeGroup,
         setActiveGroup,
         groups,
+        pinnedGroupId: user?.pinnedGroupId ?? null,
+        setPinnedGroup,
         incomeCategories,
         expenseCategories,
         reloadCategoriesAndGroups,

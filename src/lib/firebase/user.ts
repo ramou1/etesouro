@@ -10,6 +10,7 @@ export interface UserData {
   email: string;
   avatar?: string;
   allowGroupInvites?: boolean;
+  pinnedGroupId?: string | null;
   plan?: {
     period: PlanPeriod;
     purchaseDate?: string; // Data de compra no formato ISO (YYYY-MM-DD)
@@ -37,13 +38,17 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
     
     if (userDoc.exists()) {
       // Atualizar documento existente
-      await updateDoc(userRef, {
+      const updateData: Record<string, unknown> = {
         name: userData.name,
         email: userData.email,
         avatar: userData.avatar || null,
         allowGroupInvites: userData.allowGroupInvites ?? true,
         updatedAt: serverTimestamp(),
-      });
+      };
+      if (userData.pinnedGroupId !== undefined) {
+        updateData.pinnedGroupId = userData.pinnedGroupId;
+      }
+      await updateDoc(userRef, updateData);
     } else {
       // Criar novo documento
       await setDoc(userRef, {
@@ -52,6 +57,7 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
         email: userData.email,
         avatar: userData.avatar || null,
         allowGroupInvites: userData.allowGroupInvites ?? true,
+        pinnedGroupId: userData.pinnedGroupId ?? null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -94,6 +100,7 @@ export const getUserData = async (userId: string): Promise<{ success: boolean; d
           email: data.email,
           avatar: data.avatar,
           allowGroupInvites: data.allowGroupInvites,
+          pinnedGroupId: data.pinnedGroupId ?? null,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         },
@@ -216,6 +223,33 @@ export const updateAllowGroupInvites = async (userId: string, allowGroupInvites:
   } catch (error: unknown) {
     console.error('Erro ao atualizar allowGroupInvites:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar preferência de convites';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Atualizar grupo fixado do usuário
+export const updatePinnedGroup = async (userId: string, pinnedGroupId: string | null): Promise<{ success: boolean; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      pinnedGroupId: pinnedGroupId ?? null,
+      updatedAt: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Erro ao atualizar grupo fixado:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar grupo fixado';
     return {
       success: false,
       error: errorMessage,

@@ -14,6 +14,7 @@ export interface User {
   avatar?: string;
   isAuthenticated: boolean;
   plan?: UserPlan;
+  pinnedGroupId?: string | null;
 }
 
 export interface AuthUser {

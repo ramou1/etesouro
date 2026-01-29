@@ -26,6 +26,7 @@ import {
   Minus,
   Check,
   XCircle,
+  Pin,
 } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
 import { getPendingInvites, acceptGroupInvite, rejectGroupInvite, GroupInvite } from '@/lib/firebase/groups';
@@ -229,12 +230,14 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
   onEditGroup: (group: Group) => void;
   onDeleteGroup: (group: Group) => void;
 }) {
-  const { groups, user, reloadCategoriesAndGroups } = useApp();
+  const { groups, user, reloadCategoriesAndGroups, pinnedGroupId, setPinnedGroup } = useApp();
   const [pendingInvites, setPendingInvites] = useState<Record<string, number>>({});
   const [pendingInvitesData, setPendingInvitesData] = useState<Record<string, string[]>>({}); // groupId -> array de userIds pendentes
   const [receivedInvites, setReceivedInvites] = useState<GroupInvite[]>([]);
   const [isLoadingInvites, setIsLoadingInvites] = useState(true);
   const [processingInviteId, setProcessingInviteId] = useState<string | null>(null);
+  const [confirmPinGroup, setConfirmPinGroup] = useState<Group | null>(null);
+  const [isPinning, setIsPinning] = useState(false);
   
   // Buscar convites recebidos (onde o usuário é o convidado)
   React.useEffect(() => {
@@ -336,8 +339,64 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
     }
   };
 
+  const handlePinClick = (group: Group) => {
+    if (group.id === pinnedGroupId) {
+      setPinnedGroup(null);
+      return;
+    }
+    if (pinnedGroupId) {
+      setConfirmPinGroup(group);
+      return;
+    }
+    setPinnedGroup(group.id);
+  };
+
+  const handleConfirmPin = async () => {
+    if (!confirmPinGroup) return;
+    setIsPinning(true);
+    try {
+      const result = await setPinnedGroup(confirmPinGroup.id);
+      if (result.success) {
+        setConfirmPinGroup(null);
+      } else {
+        alert(result.error || 'Erro ao fixar grupo');
+      }
+    } catch (error) {
+      alert('Erro ao fixar grupo. Tente novamente.');
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Modal de confirmação ao trocar grupo fixado */}
+      {confirmPinGroup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Fixar grupo</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              É possível fixar apenas um grupo por vez. Deseja trocar para &quot;{confirmPinGroup.title}&quot;?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmPinGroup(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmPin}
+                disabled={isPinning}
+                className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+              >
+                {isPinning ? 'Fixando...' : 'Sim, fixar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-800">Grupos</h2>
         <button
@@ -437,6 +496,17 @@ function GroupsSection({ onNewGroup, onEditGroup, onDeleteGroup }: {
               </p>
             </div>
             <div className="flex gap-2">
+              <button
+                onClick={() => handlePinClick(group)}
+                className={group.id === pinnedGroupId ? "text-yellow-600 hover:text-yellow-700" : "text-gray-400 hover:text-gray-600"}
+                title={group.id === pinnedGroupId ? "Desfixar grupo" : "Fixar grupo"}
+              >
+                {group.id === pinnedGroupId ? (
+                  <Pin size={20} className="fill-current" />
+                ) : (
+                  <Pin size={20} />
+                )}
+              </button>
               <button 
                 onClick={() => onEditGroup(group)}
                 className="text-gray-400 hover:text-gray-600"
