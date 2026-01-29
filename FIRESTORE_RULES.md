@@ -28,9 +28,13 @@ service cloud.firestore {
     }
     
     // ========== COLEÇÃO DE USUÁRIOS ==========
-    // Cada usuário só acessa seus próprios dados
+    // Cada usuário acessa seus próprios dados; admin pode ler todos (para painel admin)
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin'
+      );
+      allow write: if request.auth != null && request.auth.uid == userId;
       
       // Subcoleções do usuário
       match /groupMemberships/{groupId} {
@@ -88,7 +92,8 @@ service cloud.firestore {
    - Subcoleções (limites e transações) seguem a mesma regra
 
 ### 2. **Usuários (`users`)**
-   - Cada usuário só acessa seus próprios dados
+   - Cada usuário acessa e edita apenas seus próprios dados
+   - Usuários com `type == 'admin'` podem ler todos os documentos (para o painel admin)
    - Subcoleções (categorias, referências de grupos, transações pessoais) são privadas
 
 ### 3. **Busca de Usuários (`userSearch`)**

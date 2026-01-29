@@ -80,6 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: userDataResult.data.email,
             avatar: userDataResult.data.avatar,
             isAuthenticated: true,
+            type: userDataResult.data.type ?? 'user',
             pinnedGroupId: userDataResult.data.pinnedGroupId ?? null,
           };
         } else {
@@ -90,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: firebaseUser.email || '',
             avatar: firebaseUser.photoURL || undefined,
             isAuthenticated: true,
+            type: 'user',
             pinnedGroupId: null,
           };
         }

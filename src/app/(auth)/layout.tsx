@@ -17,7 +17,7 @@ export default function AuthLayout({
     // Permitir acesso às páginas de registro e categorias mesmo quando autenticado (é parte do fluxo de registro)
     const isRegisterFlow = pathname === '/register' || pathname === '/register/categories';
     if (user?.isAuthenticated && !isRegisterFlow) {
-      router.push('/dashboard');
+      router.push(user.type === 'admin' ? '/admin' : '/dashboard');
     }
   }, [user, router, pathname]);
 

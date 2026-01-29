@@ -2,7 +2,7 @@
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp, collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from './config';
 
-import { PlanPeriod, UserPlan } from '@/types';
+import { PlanPeriod, UserPlan, UserType } from '@/types';
 
 export interface UserData {
   id: string;
@@ -10,6 +10,8 @@ export interface UserData {
   email: string;
   avatar?: string;
   allowGroupInvites?: boolean;
+  /** Tipo da conta: 'user' (padrão) ou 'admin' */
+  type?: UserType;
   pinnedGroupId?: string | null;
   plan?: {
     period: PlanPeriod;
@@ -48,15 +50,19 @@ export const saveUserData = async (userData: UserData): Promise<{ success: boole
       if (userData.pinnedGroupId !== undefined) {
         updateData.pinnedGroupId = userData.pinnedGroupId;
       }
+      if (userData.type !== undefined) {
+        updateData.type = userData.type;
+      }
       await updateDoc(userRef, updateData);
     } else {
-      // Criar novo documento
+      // Criar novo documento (novas contas recebem type: 'user' por padrão)
       await setDoc(userRef, {
         id: userData.id,
         name: userData.name,
         email: userData.email,
         avatar: userData.avatar || null,
         allowGroupInvites: userData.allowGroupInvites ?? true,
+        type: userData.type ?? 'user',
         pinnedGroupId: userData.pinnedGroupId ?? null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -100,6 +106,7 @@ export const getUserData = async (userId: string): Promise<{ success: boolean; d
           email: data.email,
           avatar: data.avatar,
           allowGroupInvites: data.allowGroupInvites,
+          type: data.type ?? 'user',
           pinnedGroupId: data.pinnedGroupId ?? null,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
@@ -433,6 +440,51 @@ export const searchUsers = async (searchTerm: string, excludeUserId?: string): P
   } catch (error: unknown) {
     console.error('[searchUsers] Erro ao buscar usuários:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao buscar usuários';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+// Listar todos os usuários (para painel admin) - usa coleção users
+export const getUsersForAdmin = async (): Promise<{ success: boolean; data?: UserData[]; error?: string }> => {
+  if (!db) {
+    return {
+      success: false,
+      error: 'Firestore não está configurado.',
+    };
+  }
+
+  try {
+    const usersRef = collection(db, 'users');
+    const usersQuery = query(usersRef, limit(500));
+    const querySnapshot = await getDocs(usersQuery);
+
+    const list: UserData[] = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data() as UserData;
+      const userId = data.id || docSnap.id;
+      list.push({
+        id: userId,
+        name: data.name ?? '',
+        email: data.email ?? '',
+        avatar: data.avatar,
+        allowGroupInvites: data.allowGroupInvites,
+        type: data.type,
+        pinnedGroupId: data.pinnedGroupId,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      });
+    });
+
+    return {
+      success: true,
+      data: list,
+    };
+  } catch (error: unknown) {
+    console.error('[getUsersForAdmin] Erro ao listar usuários:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao listar usuários';
     return {
       success: false,
       error: errorMessage,

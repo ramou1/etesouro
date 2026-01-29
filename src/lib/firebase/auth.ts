@@ -100,13 +100,14 @@ export const registerWithEmail = async (
         displayName: name,
       });
 
-      // Salvar dados do usuário no Firestore (já sincroniza com userSearch)
+      // Salvar dados do usuário no Firestore (novas contas são type: 'user')
       await saveUserData({
         id: userCredential.user.uid,
         name: name,
         email: email,
         avatar: userCredential.user.photoURL || undefined,
         allowGroupInvites: allowGroupInvites,
+        type: 'user',
       });
     }
 

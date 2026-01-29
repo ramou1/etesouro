@@ -1,5 +1,8 @@
 export type PlanPeriod = 'monthly' | 'semiannual' | 'annual';
 
+/** Tipo de conta: usuário comum ou administrador (telas diferentes) */
+export type UserType = 'user' | 'admin';
+
 export interface UserPlan {
   period: PlanPeriod;
   purchaseDate?: string; // Data de compra no formato ISO (YYYY-MM-DD)
@@ -13,6 +16,8 @@ export interface User {
   email: string;
   avatar?: string;
   isAuthenticated: boolean;
+  /** Tipo da conta: 'user' (padrão) ou 'admin' - define qual tela exibir após login */
+  type?: UserType;
   plan?: UserPlan;
   pinnedGroupId?: string | null;
 }
